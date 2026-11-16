@@ -5350,6 +5350,7 @@ $('btnSettings').addEventListener('click',()=>openSheet('settings'));
 
 /* ======================= NAVIGATION ======================= */
 function showLib(){
+  if(window.__upd){location.reload();return}
   if(state==='play')pause();
   closeSheet();setQuad(false);document.body.classList.add('v-lib');
   buildLibrary();demoStart();
@@ -5468,7 +5469,14 @@ let offState='n/a';
 function regSW(){
   if(!OFFLINE||!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;
   offState='installing';
-  navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{offState='ready';if(document.body.classList.contains('v-lib')){buildLibrary();demoStart()}}).catch(e=>{offState='error';logErr(e,'offline')});
+  const had=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!had)return;   // first install: nothing to replace
+    if(document.body.classList.contains('v-lib')||state==='idle'||state==='over')location.reload();
+    else{window.__upd=1;toast('Update ready. It loads when you go back to the library.',4200)}
+  });
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})});
+  navigator.serviceWorker.register('sw.js').then(r=>{try{r.update()}catch(e){}return navigator.serviceWorker.ready}).then(()=>{offState='ready';if(document.body.classList.contains('v-lib')){buildLibrary();demoStart()}}).catch(e=>{offState='error';logErr(e,'offline')});
 }
 
 safe(()=>{setPauseUI();setSndUI();setFsUI();route()},'start-up');
