@@ -1598,7 +1598,7 @@ const CHEF=(()=>{
 
 /* =====================================================================
    DONKEY KONG  (Game & Watch Multi Screen DK-52, 1982)   sprite prefix dk_   viewBox 360x472 (PORTRAIT: top screen above bottom screen, as in the capture)
-   CONTROLS: shell quad pad, 4 buttons:  1 = LEFT  3 = RIGHT (left pad, top/bottom)  2 = UP (climb ladder)  4 = JUMP (right pad, top/bottom).  Keyboard: arrows (left/right/up), space or Z = jump.
+   CONTROLS: shell quad pad, 4 buttons:  1 = LEFT  3 = UP/climb (left pad, top/bottom)  2 = RIGHT  4 = JUMP (right pad, top/bottom).  Keyboard: arrows (left/right/up), space or Z = jump.
    Left/right pads (move(-1/+1)) also work. No down button (none was used in the footage; Mario never goes back down a ladder).
 
    SOURCES: footage = video EjAh6SLoeE0 (MAME capture, 684 s, 360x472; 0-54 s clock/attract/test, Game A played 54-320 s (score 0 -> 261, 3 lives lost),
@@ -1940,8 +1940,8 @@ const DKONG=(()=>{
     snd('start');render();timer=setInterval(loop,30);
   }
     function press(a){if(state!=='play'||!sim)return;if(sim.act(a))handle(sim.advance(0));render()}
-  // pad layout: left pad = LEFT (1, top) / RIGHT (3, bottom); right pad = CLIMB (2, top) / JUMP (4, bottom)
-  function btn(n){press({1:'left',3:'right',2:'up',4:'jump'}[n])}
+  // pad layout: left pad = LEFT (1, top) / CLIMB (3, bottom); right pad = RIGHT (2, top) / JUMP (4, bottom)
+  function btn(n){press({1:'left',2:'right',3:'up',4:'jump'}[n])}
   function move(d){press(d<0?'left':'right')}
   // demo: a small greedy player on its own simulation
   let dSim=null;
@@ -1983,8 +1983,8 @@ const DKONG=(()=>{
     blurb:'Two screens. Climb the girders, jump the barrels (+1 low, +2 middle), pull the crane lever at the top and jump to catch the hook: that cuts one of the four wires. Cut all four and Donkey Kong falls. Three lives. Game B starts harder, with moving girders.',
     mount(){els=build($('lcd'));sim=new Sim('A');render()},
     build,demo,render,start,move,
-    quad:true,labels:{1:'◀',3:'▶',2:'▲',4:'JUMP'},btn,
-    tap(fx,fy){fx<.5?press(fy<.5?'left':'right'):press(fy<.5?'up':'jump')},
+    quad:true,labels:{1:'◀',2:'▶',3:'▲',4:'JUMP'},btn,
+    tap(fx,fy){fx<.5?press(fy<.5?'left':'up'):press(fy<.5?'right':'jump')},
     pad(side,fy){btn(side<0?(fy<.5?1:3):(fy<.5?2:4))},
     key(k){const m={arrowleft:'left',arrowright:'right',arrowup:'up',ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',' ':'jump',z:'jump',a:'left',d:'right',w:'up',Space:'jump',spacebar:'jump'}[k];if(m){press(m);return true}return false},
     score:()=>sim?sim.score:0,
