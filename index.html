@@ -284,7 +284,8 @@ function beep(f,d=.06,type='square',v=.04,when=0){
   g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);
   o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d+.02);
 }
-const sfx={
+const sfxD={
+  bonus:()=>{for(let i=0;i<6;i++)beep(1400,.12,'square',.04,i*.2)},
   signal:n=>beep([0,660,780,520,440][n]||600,.12,'square',.04),
   step:()=>beep(1250,.025,'square',.018),
   tock:()=>beep(900,.02,'square',.014),
@@ -295,6 +296,41 @@ const sfx={
   over:()=>[400,330,260,200].forEach((f,i)=>beep(f,.18,'square',.06,i*.18)),
   start:()=>[800,1000,1200].forEach((f,i)=>beep(f,.07,'square',.04,i*.07)),
   pause:()=>{beep(700,.05);beep(500,.07,'square',.04,.06)}
+};
+/* Per-game sound table, measured from the original units' audio (work/sounds.js).
+   SND[gameId][sfxName] = [{f,d,at,type,v},...]  -> play exactly these beeps
+                        = []                     -> the real unit is silent here
+                        = {cycle:[[notes],[notes]]} -> rotate through the lists, one per call
+   A game with a table is silent for any sfx name it does not list; games without one use the defaults above. */
+const SND={fire:{"move":[],"tock":[{"f":1930,"d":0.022,"at":0}],"step":[{"f":1930,"d":0.022,"at":0}],"signal":[],"catch":[{"f":1171,"d":0.04,"at":0}],"miss":[{"f":1171,"d":0.429,"at":0}],"crush":[],"over":[],"start":[],"pause":[],"bonus":[]},
+ball:{"move":[],"tock":{"cycle":[[{"f":2049,"d":0.02,"at":0}],[{"f":2525,"d":0.02,"at":0}]]},"step":[],"signal":[],"catch":[{"f":1025,"d":0.028,"at":0.048}],"miss":[],"crush":[{"f":820,"d":0.33,"at":0}],"over":[],"start":[],"pause":[],"bonus":[]},
+vermin:{"move":[],"tock":[{"f":2049,"d":0.02,"at":0}],"step":[],"signal":[],"catch":[{"f":2049,"d":0.02,"at":0},{"f":2525,"d":0.02,"at":0.128}],"miss":[{"f":820,"d":0.335,"at":0}],"crush":[],"over":[{"f":2049,"d":0.02,"at":0.0},{"f":2525,"d":0.02,"at":0.02},{"f":2049,"d":0.02,"at":0.04},{"f":2525,"d":0.02,"at":0.06},{"f":2049,"d":0.02,"at":0.08},{"f":2525,"d":0.02,"at":0.1},{"f":2049,"d":0.02,"at":0.12},{"f":2525,"d":0.02,"at":0.14},{"f":2049,"d":0.02,"at":0.16},{"f":2525,"d":0.02,"at":0.18},{"f":2049,"d":0.02,"at":0.2},{"f":2525,"d":0.02,"at":0.22},{"f":2049,"d":0.02,"at":0.24},{"f":2525,"d":0.02,"at":0.26},{"f":2049,"d":0.02,"at":0.28},{"f":2525,"d":0.02,"at":0.3},{"f":2049,"d":0.02,"at":0.32},{"f":2525,"d":0.02,"at":0.34},{"f":2049,"d":0.02,"at":0.36},{"f":2525,"d":0.02,"at":0.38},{"f":2049,"d":0.02,"at":0.4},{"f":2525,"d":0.02,"at":0.42},{"f":2049,"d":0.02,"at":0.44},{"f":2525,"d":0.02,"at":0.46},{"f":2049,"d":0.02,"at":0.48},{"f":2525,"d":0.02,"at":0.5},{"f":2049,"d":0.02,"at":0.52},{"f":2525,"d":0.02,"at":0.54},{"f":2049,"d":0.02,"at":0.56},{"f":2525,"d":0.02,"at":0.58},{"f":2049,"d":0.02,"at":0.6},{"f":2525,"d":0.02,"at":0.62},{"f":2049,"d":0.02,"at":0.64},{"f":2525,"d":0.02,"at":0.66},{"f":2049,"d":0.02,"at":0.68},{"f":2525,"d":0.02,"at":0.7},{"f":2049,"d":0.02,"at":0.72},{"f":2525,"d":0.02,"at":0.74},{"f":2049,"d":0.02,"at":0.76},{"f":2525,"d":0.02,"at":0.78},{"f":2049,"d":0.02,"at":0.8},{"f":2525,"d":0.02,"at":0.82},{"f":2049,"d":0.02,"at":0.84},{"f":2525,"d":0.02,"at":0.86},{"f":2049,"d":0.02,"at":0.88},{"f":2525,"d":0.02,"at":0.9},{"f":2049,"d":0.02,"at":0.92},{"f":2525,"d":0.02,"at":0.94},{"f":2049,"d":0.02,"at":0.96},{"f":2525,"d":0.02,"at":0.98},{"f":2049,"d":0.02,"at":1.0},{"f":2525,"d":0.02,"at":1.02},{"f":2049,"d":0.02,"at":1.04},{"f":2525,"d":0.02,"at":1.06},{"f":2049,"d":0.02,"at":1.08},{"f":2525,"d":0.02,"at":1.1},{"f":2049,"d":0.02,"at":1.12},{"f":2525,"d":0.02,"at":1.14},{"f":2049,"d":0.02,"at":1.16},{"f":2525,"d":0.02,"at":1.18},{"f":2049,"d":0.02,"at":1.2},{"f":2525,"d":0.02,"at":1.22},{"f":2049,"d":0.02,"at":1.24},{"f":2525,"d":0.02,"at":1.26},{"f":2049,"d":0.02,"at":1.28},{"f":2525,"d":0.02,"at":1.3},{"f":2049,"d":0.02,"at":1.32},{"f":2525,"d":0.02,"at":1.34},{"f":2049,"d":0.02,"at":1.36},{"f":2525,"d":0.02,"at":1.38},{"f":2049,"d":0.02,"at":1.4},{"f":2525,"d":0.02,"at":1.42},{"f":2049,"d":0.02,"at":1.44},{"f":2525,"d":0.02,"at":1.46},{"f":2049,"d":0.02,"at":1.48},{"f":2525,"d":0.02,"at":1.5},{"f":2049,"d":0.02,"at":1.52},{"f":2525,"d":0.02,"at":1.54},{"f":2049,"d":0.02,"at":1.56},{"f":2525,"d":0.02,"at":1.58},{"f":2049,"d":0.02,"at":1.6},{"f":2525,"d":0.02,"at":1.62},{"f":2049,"d":0.02,"at":1.64},{"f":2525,"d":0.02,"at":1.66},{"f":2049,"d":0.02,"at":1.68},{"f":2525,"d":0.02,"at":1.7},{"f":2049,"d":0.02,"at":1.72},{"f":2525,"d":0.02,"at":1.74},{"f":2049,"d":0.02,"at":1.76},{"f":2525,"d":0.02,"at":1.78},{"f":2049,"d":0.02,"at":1.8},{"f":2525,"d":0.02,"at":1.82},{"f":2049,"d":0.02,"at":1.84},{"f":2525,"d":0.02,"at":1.86},{"f":2049,"d":0.02,"at":1.88}],"start":[],"pause":[],"bonus":[]},
+flagman:{"move":[],"tock":[],"step":[],"signal":[],"catch":[],"miss":[{"f":2049,"d":0.027,"at":0.0},{"f":2733,"d":0.029,"at":0.027},{"f":2049,"d":0.027,"at":0.056},{"f":2733,"d":0.029,"at":0.083},{"f":2049,"d":0.027,"at":0.112},{"f":2733,"d":0.029,"at":0.139},{"f":2049,"d":0.027,"at":0.168},{"f":2733,"d":0.029,"at":0.195},{"f":2049,"d":0.027,"at":0.224},{"f":2733,"d":0.029,"at":0.251},{"f":2049,"d":0.027,"at":0.28},{"f":2733,"d":0.029,"at":0.307},{"f":2049,"d":0.027,"at":0.336},{"f":2733,"d":0.029,"at":0.363},{"f":2049,"d":0.027,"at":0.392},{"f":2733,"d":0.029,"at":0.419},{"f":2049,"d":0.027,"at":0.448},{"f":2733,"d":0.029,"at":0.475},{"f":2049,"d":0.027,"at":0.504},{"f":2733,"d":0.029,"at":0.531},{"f":2049,"d":0.027,"at":0.56},{"f":2733,"d":0.029,"at":0.587},{"f":2049,"d":0.027,"at":0.616},{"f":2733,"d":0.029,"at":0.643},{"f":2049,"d":0.027,"at":0.672},{"f":2733,"d":0.029,"at":0.699},{"f":2049,"d":0.027,"at":0.728},{"f":2733,"d":0.029,"at":0.755},{"f":2049,"d":0.027,"at":0.784},{"f":2733,"d":0.029,"at":0.811},{"f":2049,"d":0.027,"at":0.84},{"f":2733,"d":0.029,"at":0.867},{"f":2049,"d":0.027,"at":0.896},{"f":2733,"d":0.029,"at":0.923},{"f":2049,"d":0.027,"at":0.952},{"f":2733,"d":0.029,"at":0.979},{"f":2049,"d":0.027,"at":1.008},{"f":2733,"d":0.029,"at":1.035},{"f":2049,"d":0.027,"at":1.064},{"f":2733,"d":0.029,"at":1.091},{"f":2049,"d":0.027,"at":1.12},{"f":2733,"d":0.029,"at":1.147},{"f":2049,"d":0.027,"at":1.176},{"f":2733,"d":0.029,"at":1.203},{"f":2049,"d":0.027,"at":1.232},{"f":2733,"d":0.029,"at":1.259},{"f":2049,"d":0.027,"at":1.288},{"f":2733,"d":0.029,"at":1.315},{"f":2049,"d":0.027,"at":1.344},{"f":2733,"d":0.029,"at":1.371},{"f":2049,"d":0.027,"at":1.4},{"f":2733,"d":0.029,"at":1.427},{"f":2049,"d":0.027,"at":1.456},{"f":2733,"d":0.029,"at":1.483},{"f":2049,"d":0.027,"at":1.512},{"f":2733,"d":0.029,"at":1.539},{"f":2049,"d":0.027,"at":1.568},{"f":2733,"d":0.029,"at":1.595},{"f":2049,"d":0.027,"at":1.624},{"f":2733,"d":0.029,"at":1.651},{"f":2049,"d":0.027,"at":1.68},{"f":2733,"d":0.029,"at":1.707},{"f":2049,"d":0.027,"at":1.736},{"f":2733,"d":0.029,"at":1.763},{"f":2049,"d":0.027,"at":1.792},{"f":2733,"d":0.029,"at":1.819},{"f":2049,"d":0.027,"at":1.848}],"crush":[],"over":[],"start":[],"pause":[],"bonus":[]},
+judge:{"move":[{"f":2082,"d":0.14,"at":0}],"tock":[{"f":2520,"d":0.013,"at":0}],"step":[{"f":1023,"d":0.054,"at":0}],"signal":[],"catch":[{"f":1023,"d":0.027,"at":0.0},{"f":2080,"d":0.028,"at":0.027},{"f":1023,"d":0.027,"at":0.055},{"f":2080,"d":0.028,"at":0.082},{"f":1023,"d":0.027,"at":0.11},{"f":2080,"d":0.028,"at":0.137},{"f":1023,"d":0.027,"at":0.165},{"f":2080,"d":0.028,"at":0.192},{"f":1023,"d":0.027,"at":0.22},{"f":2080,"d":0.028,"at":0.247},{"f":1023,"d":0.027,"at":0.275},{"f":2080,"d":0.028,"at":0.302},{"f":1023,"d":0.027,"at":0.33},{"f":2080,"d":0.028,"at":0.357},{"f":1023,"d":0.027,"at":0.385},{"f":2080,"d":0.028,"at":0.412},{"f":1023,"d":0.027,"at":0.44},{"f":2080,"d":0.028,"at":0.467},{"f":1023,"d":0.027,"at":0.495},{"f":2080,"d":0.028,"at":0.522},{"f":1023,"d":0.027,"at":0.55},{"f":2080,"d":0.028,"at":0.577},{"f":1023,"d":0.027,"at":0.605},{"f":2080,"d":0.028,"at":0.632},{"f":1023,"d":0.027,"at":0.66},{"f":2080,"d":0.028,"at":0.687},{"f":1023,"d":0.027,"at":0.715},{"f":2080,"d":0.028,"at":0.742},{"f":1023,"d":0.027,"at":0.77},{"f":2080,"d":0.028,"at":0.797}],"miss":[{"f":1635,"d":0.035,"at":0},{"f":1023,"d":0.027,"at":0.035},{"f":2080,"d":0.028,"at":0.062},{"f":1023,"d":0.027,"at":0.09},{"f":2080,"d":0.028,"at":0.117},{"f":1023,"d":0.027,"at":0.145},{"f":2080,"d":0.028,"at":0.172},{"f":1023,"d":0.027,"at":0.2},{"f":2080,"d":0.028,"at":0.227},{"f":1023,"d":0.027,"at":0.255},{"f":2080,"d":0.028,"at":0.282},{"f":1023,"d":0.027,"at":0.31},{"f":2080,"d":0.028,"at":0.337},{"f":1023,"d":0.027,"at":0.365},{"f":2080,"d":0.028,"at":0.392},{"f":1023,"d":0.027,"at":0.42},{"f":2080,"d":0.028,"at":0.447},{"f":1023,"d":0.027,"at":0.475},{"f":2080,"d":0.028,"at":0.502},{"f":1023,"d":0.027,"at":0.53},{"f":2080,"d":0.028,"at":0.557},{"f":1023,"d":0.027,"at":0.585},{"f":2080,"d":0.028,"at":0.612},{"f":1023,"d":0.027,"at":0.64},{"f":2080,"d":0.028,"at":0.667},{"f":1023,"d":0.027,"at":0.695},{"f":2080,"d":0.028,"at":0.722},{"f":1023,"d":0.027,"at":0.75},{"f":2080,"d":0.028,"at":0.777},{"f":1023,"d":0.027,"at":0.805},{"f":2080,"d":0.028,"at":0.832}],"crush":[],"over":[{"f":1023,"d":0.027,"at":0.0},{"f":1636,"d":0.027,"at":0.027},{"f":2081,"d":0.027,"at":0.054},{"f":2533,"d":0.027,"at":0.081},{"f":1023,"d":0.027,"at":0.108},{"f":1636,"d":0.027,"at":0.135},{"f":2081,"d":0.027,"at":0.162},{"f":2533,"d":0.027,"at":0.189},{"f":1023,"d":0.027,"at":0.216},{"f":1636,"d":0.027,"at":0.243},{"f":2081,"d":0.027,"at":0.27},{"f":2533,"d":0.027,"at":0.297},{"f":1023,"d":0.027,"at":0.324},{"f":1636,"d":0.027,"at":0.351},{"f":2081,"d":0.027,"at":0.378},{"f":2533,"d":0.027,"at":0.405},{"f":1023,"d":0.027,"at":0.432},{"f":1636,"d":0.027,"at":0.459},{"f":2081,"d":0.027,"at":0.486},{"f":2533,"d":0.027,"at":0.513},{"f":1023,"d":0.027,"at":0.54},{"f":1636,"d":0.027,"at":0.567},{"f":2081,"d":0.027,"at":0.594},{"f":2533,"d":0.027,"at":0.621},{"f":1023,"d":0.027,"at":0.648},{"f":1636,"d":0.027,"at":0.675},{"f":2081,"d":0.027,"at":0.702},{"f":2533,"d":0.027,"at":0.729},{"f":1023,"d":0.027,"at":0.756},{"f":1636,"d":0.027,"at":0.783},{"f":2081,"d":0.027,"at":0.81},{"f":2533,"d":0.027,"at":0.837},{"f":1023,"d":0.027,"at":0.864},{"f":1636,"d":0.027,"at":0.891},{"f":2081,"d":0.027,"at":0.918},{"f":2533,"d":0.027,"at":0.945},{"f":1023,"d":0.027,"at":0.972},{"f":1636,"d":0.027,"at":0.999},{"f":2081,"d":0.027,"at":1.026},{"f":2533,"d":0.027,"at":1.053},{"f":1023,"d":0.027,"at":1.08},{"f":1636,"d":0.027,"at":1.107},{"f":2081,"d":0.027,"at":1.134},{"f":2533,"d":0.027,"at":1.161},{"f":1023,"d":0.027,"at":1.188},{"f":1636,"d":0.027,"at":1.215},{"f":2081,"d":0.027,"at":1.242},{"f":2533,"d":0.027,"at":1.269},{"f":1023,"d":0.027,"at":1.296},{"f":1636,"d":0.027,"at":1.323},{"f":2081,"d":0.027,"at":1.35},{"f":2533,"d":0.027,"at":1.377},{"f":1023,"d":0.027,"at":1.404},{"f":1636,"d":0.027,"at":1.431},{"f":2081,"d":0.027,"at":1.458},{"f":2533,"d":0.027,"at":1.485},{"f":1023,"d":0.027,"at":1.512},{"f":1636,"d":0.027,"at":1.539},{"f":2081,"d":0.027,"at":1.566},{"f":2533,"d":0.027,"at":1.593}],"start":[],"pause":[],"bonus":[]},
+manhole:{"move":[],"tock":{"cycle":[[{"f":1165,"d":0.013,"at":0}],[{"f":2186,"d":0.013,"at":0}]]},"step":[],"signal":[],"catch":[{"f":2341,"d":0.045,"at":0}],"miss":[{"f":2341,"d":0.317,"at":0}],"crush":[],"over":[],"start":[],"pause":[],"bonus":[]},
+helmet:{"move":[],"tock":[{"f":2186,"d":0.012,"at":0}],"step":[],"signal":[],"catch":[{"f":2570,"d":0.1,"at":0}],"miss":[],"crush":[{"f":2570,"d":0.43,"at":0}],"over":[],"start":[],"pause":[],"bonus":[{"f":2570,"d":0.214,"at":0.0},{"f":2570,"d":0.214,"at":0.5},{"f":2570,"d":0.214,"at":1.0},{"f":2570,"d":0.214,"at":1.5},{"f":2570,"d":0.214,"at":2.0},{"f":2570,"d":0.214,"at":2.5},{"f":2570,"d":0.214,"at":3.0},{"f":2570,"d":0.214,"at":3.5},{"f":2570,"d":0.214,"at":4.0},{"f":2570,"d":0.214,"at":4.5}]},
+lion:{"move":[],"tock":[{"f":2570,"d":0.04,"at":0}],"step":[],"signal":[{"f":2345,"d":0.128,"at":0}],"catch":[{"f":2570,"d":0.038,"at":0},{"f":2345,"d":0.062,"at":0.062}],"miss":[{"f":2345,"d":0.31,"at":0}],"crush":[],"over":[],"start":[],"pause":[],"bonus":[{"f":2345,"d":0.24,"at":0.0},{"f":2345,"d":0.24,"at":0.5},{"f":2345,"d":0.24,"at":1.0},{"f":2345,"d":0.24,"at":1.5},{"f":2345,"d":0.24,"at":2.0},{"f":2345,"d":0.24,"at":2.5},{"f":2345,"d":0.24,"at":3.0},{"f":2345,"d":0.24,"at":3.5},{"f":2345,"d":0.24,"at":4.0},{"f":2345,"d":0.24,"at":4.5}]},
+parachute:{"move":[],"tock":[{"f":1020,"d":0.012,"at":0}],"step":[],"signal":[{"f":2570,"d":0.435,"at":0},{"f":2570,"d":0.15,"at":0.61},{"f":2570,"d":0.15,"at":0.945},{"f":2570,"d":0.37,"at":1.28}],"catch":[{"f":2570,"d":0.104,"at":0}],"miss":[{"f":2570,"d":0.435,"at":0},{"f":2570,"d":0.15,"at":0.61},{"f":2570,"d":0.15,"at":0.945},{"f":2570,"d":0.15,"at":1.28},{"f":2570,"d":0.15,"at":1.615},{"f":2570,"d":0.37,"at":1.95}],"crush":[{"f":2570,"d":0.435,"at":0},{"f":2570,"d":0.15,"at":0.61},{"f":2570,"d":0.15,"at":0.945},{"f":2570,"d":0.15,"at":1.28},{"f":2570,"d":0.37,"at":1.615}],"over":[],"start":[],"pause":[],"bonus":[{"f":2570,"d":0.227,"at":0.3},{"f":2570,"d":0.227,"at":0.8},{"f":2570,"d":0.227,"at":1.3},{"f":2570,"d":0.227,"at":1.8},{"f":2570,"d":0.227,"at":2.3},{"f":2570,"d":0.227,"at":2.8},{"f":2570,"d":0.227,"at":3.3},{"f":2570,"d":0.227,"at":3.8},{"f":2570,"d":0.227,"at":4.3},{"f":2570,"d":0.227,"at":4.8}]},
+octopus:{"move":[],"tock":[{"f":1020,"d":0.012,"at":0}],"step":[{"f":2570,"d":0.104,"at":0}],"signal":[],"catch":[{"f":2570,"d":0.104,"at":0}],"miss":[{"f":2570,"d":0.455,"at":0},{"f":2570,"d":0.19,"at":0.7},{"f":2570,"d":0.19,"at":1.023},{"f":2570,"d":0.19,"at":1.346},{"f":2570,"d":0.19,"at":1.669},{"f":2570,"d":0.19,"at":1.992},{"f":2570,"d":0.19,"at":2.315},{"f":2570,"d":0.19,"at":2.638},{"f":2570,"d":0.19,"at":2.961}],"crush":[],"over":[],"start":[],"pause":[],"bonus":[{"f":2570,"d":0.227,"at":0.3},{"f":2570,"d":0.227,"at":0.8},{"f":2570,"d":0.227,"at":1.3},{"f":2570,"d":0.227,"at":1.8},{"f":2570,"d":0.227,"at":2.3},{"f":2570,"d":0.227,"at":2.8},{"f":2570,"d":0.227,"at":3.3},{"f":2570,"d":0.227,"at":3.8},{"f":2570,"d":0.227,"at":4.3},{"f":2570,"d":0.227,"at":4.8}]},
+popeye:{"move":[],"tock":[{"f":1020,"d":0.012,"at":0}],"step":[],"signal":[],"catch":[{"f":2570,"d":0.104,"at":0}],"miss":[{"f":2570,"d":0.322,"at":0}],"crush":[{"f":2570,"d":0.388,"at":0}],"over":[],"start":[],"pause":[],"bonus":[{"f":2570,"d":0.227,"at":0.3},{"f":2570,"d":0.227,"at":0.8},{"f":2570,"d":0.227,"at":1.3},{"f":2570,"d":0.227,"at":1.8},{"f":2570,"d":0.227,"at":2.3},{"f":2570,"d":0.227,"at":2.8},{"f":2570,"d":0.227,"at":3.3},{"f":2570,"d":0.227,"at":3.8},{"f":2570,"d":0.227,"at":4.3},{"f":2570,"d":0.227,"at":4.8}]},
+chef:{"move":[],"tock":[{"f":1990,"d":0.019,"at":0}],"step":[{"f":809,"d":0.165,"at":0},{"f":809,"d":0.69,"at":0.72},{"f":809,"d":0.165,"at":1.95}],"signal":[{"f":809,"d":0.165,"at":0},{"f":809,"d":0.515,"at":0.72},{"f":809,"d":0.165,"at":1.78}],"catch":[{"f":1008,"d":0.071,"at":0}],"miss":[{"f":809,"d":0.165,"at":0},{"f":809,"d":0.34,"at":0.72},{"f":809,"d":0.165,"at":1.58}],"crush":[{"f":809,"d":0.165,"at":0},{"f":809,"d":0.165,"at":0.72},{"f":809,"d":0.165,"at":1.42}],"over":[],"start":[{"f":1008,"d":0.071,"at":0}],"pause":[],"bonus":[{"f":809,"d":0.165,"at":0.35},{"f":809,"d":0.165,"at":0.82},{"f":809,"d":0.165,"at":1.29},{"f":809,"d":0.165,"at":1.76},{"f":809,"d":0.165,"at":2.23}]},
+mouse:{"move":[],"tock":[{"f":1787,"d":0.0134,"at":0}],"step":[{"f":1952,"d":0.0123,"at":0}],"signal":[{"f":2001,"d":0.012,"at":0}],"catch":[{"f":1010,"d":0.0634,"at":0.05}],"miss":[{"f":810,"d":0.158,"at":0}],"crush":[{"f":2641,"d":0.0121,"at":0}],"over":[{"f":1780,"d":0.028,"at":0.0},{"f":1950,"d":0.012,"at":0.028},{"f":2640,"d":0.028,"at":0.04},{"f":2000,"d":0.016,"at":0.072},{"f":1780,"d":0.028,"at":0.088},{"f":1950,"d":0.012,"at":0.116},{"f":2640,"d":0.028,"at":0.128},{"f":2000,"d":0.016,"at":0.16},{"f":1780,"d":0.028,"at":0.176},{"f":1950,"d":0.012,"at":0.204},{"f":2640,"d":0.028,"at":0.216},{"f":2000,"d":0.016,"at":0.248},{"f":1780,"d":0.028,"at":0.264},{"f":1950,"d":0.012,"at":0.292},{"f":2640,"d":0.028,"at":0.304},{"f":2000,"d":0.016,"at":0.336},{"f":1780,"d":0.028,"at":0.352},{"f":1950,"d":0.012,"at":0.38},{"f":2640,"d":0.028,"at":0.392},{"f":2000,"d":0.016,"at":0.424},{"f":1780,"d":0.028,"at":0.44},{"f":1950,"d":0.012,"at":0.468},{"f":2640,"d":0.028,"at":0.48},{"f":2000,"d":0.016,"at":0.512},{"f":1780,"d":0.028,"at":0.528},{"f":1950,"d":0.012,"at":0.556},{"f":2640,"d":0.028,"at":0.568},{"f":2000,"d":0.016,"at":0.6}],"start":[],"pause":[],"bonus":[{"f":810,"d":0.158,"at":0.0},{"f":810,"d":0.158,"at":0.68},{"f":810,"d":0.158,"at":1.36},{"f":810,"d":0.158,"at":2.04},{"f":810,"d":0.158,"at":2.72},{"f":810,"d":0.158,"at":3.4},{"f":810,"d":0.158,"at":4.08}]},
+egg:{"move":[],"tock":[{"f":1787,"d":0.0134,"at":0}],"step":[{"f":1952,"d":0.0123,"at":0}],"signal":[{"f":2001,"d":0.012,"at":0}],"catch":[{"f":1010,"d":0.0634,"at":0.05}],"miss":[{"f":810,"d":0.158,"at":0}],"crush":[{"f":2641,"d":0.0121,"at":0}],"over":[{"f":1780,"d":0.028,"at":0.0},{"f":1950,"d":0.012,"at":0.028},{"f":2640,"d":0.028,"at":0.04},{"f":2000,"d":0.016,"at":0.072},{"f":1780,"d":0.028,"at":0.088},{"f":1950,"d":0.012,"at":0.116},{"f":2640,"d":0.028,"at":0.128},{"f":2000,"d":0.016,"at":0.16},{"f":1780,"d":0.028,"at":0.176},{"f":1950,"d":0.012,"at":0.204},{"f":2640,"d":0.028,"at":0.216},{"f":2000,"d":0.016,"at":0.248},{"f":1780,"d":0.028,"at":0.264},{"f":1950,"d":0.012,"at":0.292},{"f":2640,"d":0.028,"at":0.304},{"f":2000,"d":0.016,"at":0.336},{"f":1780,"d":0.028,"at":0.352},{"f":1950,"d":0.012,"at":0.38},{"f":2640,"d":0.028,"at":0.392},{"f":2000,"d":0.016,"at":0.424},{"f":1780,"d":0.028,"at":0.44},{"f":1950,"d":0.012,"at":0.468},{"f":2640,"d":0.028,"at":0.48},{"f":2000,"d":0.016,"at":0.512},{"f":1780,"d":0.028,"at":0.528},{"f":1950,"d":0.012,"at":0.556},{"f":2640,"d":0.028,"at":0.568},{"f":2000,"d":0.016,"at":0.6}],"start":[],"pause":[],"bonus":[{"f":810,"d":0.158,"at":0.0},{"f":810,"d":0.158,"at":0.68},{"f":810,"d":0.158,"at":1.36},{"f":810,"d":0.158,"at":2.04},{"f":810,"d":0.158,"at":2.72},{"f":810,"d":0.158,"at":3.4},{"f":810,"d":0.158,"at":4.08}]},
+turtle:{"move":{"cycle":[[{"f":2800,"d":0.05,"at":0}],[{"f":2800,"d":0.05,"at":0}],[{"f":4096,"d":0.05,"at":0}]]},"tock":[{"f":4100,"d":0.0117,"at":0}],"step":[{"f":4100,"d":0.27,"at":0},{"f":4100,"d":0.26,"at":0.76},{"f":4130,"d":0.042,"at":1.344},{"f":2830,"d":0.048,"at":1.388},{"f":4120,"d":0.216,"at":1.44},{"f":4110,"d":0.088,"at":1.662},{"f":2830,"d":0.216,"at":1.752},{"f":4120,"d":0.08,"at":2.032},{"f":2830,"d":0.62,"at":2.13},{"f":4110,"d":0.218,"at":2.752}],"signal":{"cycle":[[{"f":2641,"d":0.0083,"at":0}],[{"f":2576,"d":0.0082,"at":0}]]},"catch":[],"miss":[],"crush":[{"f":4100,"d":0.285,"at":0},{"f":4100,"d":0.28,"at":0.778},{"f":2830,"d":0.09,"at":1.33},{"f":4100,"d":0.22,"at":1.425}],"over":[],"start":[],"pause":[],"bonus":[{"f":4100,"d":0.22,"at":0.0},{"f":2830,"d":0.22,"at":0.25},{"f":4100,"d":0.22,"at":0.5},{"f":2830,"d":0.22,"at":0.75},{"f":4100,"d":0.22,"at":1.0},{"f":2830,"d":0.22,"at":1.25},{"f":4100,"d":0.22,"at":1.5},{"f":2830,"d":0.22,"at":1.75},{"f":4100,"d":0.22,"at":2.0}]},
+attack:{"move":[],"tock":[{"f":3501,"d":0.0274,"at":0}],"step":[{"f":3597,"d":0.0334,"at":0}],"signal":[{"f":4097,"d":0.0749,"at":0}],"catch":[{"f":4100,"d":0.0317,"at":0}],"miss":[{"f":2520,"d":0.476,"at":0},{"f":3330,"d":0.372,"at":0.616},{"f":2530,"d":0.5,"at":0.98},{"f":2540,"d":0.46,"at":1.732},{"f":3350,"d":0.37,"at":2.356},{"f":3250,"d":0.176,"at":3.372}],"crush":[{"f":2490,"d":0.484,"at":0},{"f":2480,"d":0.464,"at":0.616},{"f":3320,"d":0.48,"at":1.36},{"f":3290,"d":0.364,"at":1.984},{"f":2550,"d":0.82,"at":2.984},{"f":2580,"d":0.46,"at":3.812}],"over":[],"start":[],"pause":[],"bonus":[{"f":2520,"d":0.23,"at":0},{"f":3560,"d":0.155,"at":0.23},{"f":4100,"d":0.13,"at":0.5},{"f":4090,"d":0.065,"at":0.685},{"f":3370,"d":0.39,"at":0.81},{"f":4100,"d":0.13,"at":1.25},{"f":4090,"d":0.066,"at":1.44},{"f":3340,"d":0.38,"at":1.564},{"f":4100,"d":0.128,"at":2.0},{"f":4090,"d":0.063,"at":2.19},{"f":4090,"d":0.063,"at":2.31},{"f":2520,"d":0.46,"at":2.38}]}};
+const sndN={};
+function playSpec(s,key){
+  if(!s)return;
+  let notes=s;
+  if(!Array.isArray(s)&&s.cycle){const k=(cur?cur.id:'')+key;sndN[k]=((sndN[k]||0)+1)%s.cycle.length;notes=s.cycle[sndN[k]]}
+  for(const n of notes)beep(n.f,n.d,n.type||'square',n.v||.04,n.at||0);
+}
+const sfx={};
+for(const g in SND)for(const k in SND[g])if(!sfxD[k])sfxD[k]=()=>{};   // names that only exist in per-game tables
+for(const k in sfxD)sfx[k]=(...a)=>{
+  const t=cur&&SND[cur.id];
+  if(!t)return sfxD[k](...a);
+  if(Object.prototype.hasOwnProperty.call(t,k))playSpec(t[k],k);
 };
 function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 
@@ -333,7 +369,8 @@ const FIRE=(()=>{
               'f','f','f','f','f','N2',
               'f','f','AMB'];
   const LANDS=[]; PATH.forEach((p,i)=>{if(p[0]==='N')LANDS.push({i,lane:+p[1]})});
-  const MODES={A:{base:620,min:330,gap:[10,13]},B:{base:430,min:230,gap:[10,12]}};
+  // difficulty ramp (tuned): slow start, linear speed-up with score down to the cap; jumpers start sparse and get denser
+  const MODES={A:{base:700,min:330,slope:2.5,gap0:16,gap1:10,span:3},B:{base:540,min:240,slope:2.5,gap0:14,gap1:10,span:2}};
   let els=null,st=null,lane=1,timer=null,flick=0,mode='A';
 
   function build(svg){
@@ -374,7 +411,7 @@ const FIRE=(()=>{
       digits(els,st.score);
     }else digits(els,0);
   }
-  function tickMs(){const m=MODES[mode];return Math.max(m.min,m.base-st.score*4)}
+  function tickMs(){const m=MODES[mode];return Math.max(m.min,m.base-st.score*m.slope)}
   // A new jumper is only released if it can never need the stretcher at two spots too close
   // together in time (adjacent spots: 2 ticks apart, far spots: 3), so every round is winnable.
   function canSpawn(){
@@ -415,7 +452,7 @@ const FIRE=(()=>{
     st.since++;
     if(st.since>=st.gap&&canSpawn()){
       st.jump.push({i:0});
-      const g=MODES[mode].gap;st.since=0;st.gap=rnd(g[0],g[1]);
+      const m=MODES[mode],lo=Math.max(m.gap1,m.gap0-Math.floor(st.score/8));st.since=0;st.gap=rnd(lo,lo+m.span);
     }
     if(!event)sfx.step();
     render();
@@ -471,9 +508,31 @@ const BALL=(()=>{
   const need=(arc,i)=>arc===OUT?(i===0?2:1):3;       // pose required at an arc end
   const SLOT={2:-1,3:0,1:1},POSE_OF=[2,3,1];          // left ↔ centre ↔ right
   class Sim{
-    constructor(){
-      this.b=[{arc:INN,i:0,dir:1,end:false,chk:true},{arc:OUT,i:0,dir:1,end:false,chk:true}];
-      this.t=0;this.n=0;
+    constructor(tk){
+      this.b=[{arc:INN,i:0,dir:1,end:false,chk:true,hold:0},{arc:OUT,i:0,dir:1,end:false,chk:true,hold:0}];
+      this.t=0;this.n=0;this.tk=tk||(()=>.4);        // tk() = current tick length in seconds
+    }
+    // Tuned: the two balls' end-of-arc catches (a centre pose for the inner ball, a side pose for the outer one)
+    // used to drift into each other (judged on the same or neighbouring ticks = impossible to switch pose in time).
+    // Now, when a ball starts a new leg, it may wait at the end (in steps of 2 ticks) until its next catch is at
+    // least ~0.5 s away from the other ball's next catch, so there is always time for one hand move.
+    nextJudge(k){                        // tick on which ball k's next end-catch is judged
+      const b=this.b[k],len=b.arc.length;
+      if(b.end&&!b.chk)return this.t;
+      const m=this.t+((this.t%2)===k?0:1);          // ball k's next turn
+      if(b.end)return m+2*b.hold+2*(len-2)+1;       // waits, reverses, walks the whole arc
+      const s=b.dir>0?len-1-b.i:b.i;
+      return m+2*(s-1)+1;
+    }
+    plan(k){                             // called when ball k has just arrived at an end on tick this.t
+      const b=this.b[k],len=b.arc.length,o=1-k;
+      const need=Math.max(3,Math.ceil(.52/(this.tk()*.9)));
+      const jo=this.nextJudge(o);
+      for(let h=0;h<8;h++){
+        const j=this.t+2+2*h+2*(len-2)+1;
+        if(Math.abs(j-jo)>=need){b.hold=h;return}
+      }
+      b.hold=0;
     }
     pending(){const o=this.b[1-(this.t%2)];return(o.end&&!o.chk)?need(o.arc,o.i):0}
     step(pose){
@@ -484,26 +543,17 @@ const BALL=(()=>{
         else{ev.push('crush');return ev}
       }
       const b=this.b[turn];
+      if(b.end&&b.hold>0){b.hold--;this.t++;ev.push('step');return ev}
       if(b.end){b.dir=-b.dir;b.end=false}
       b.i+=b.dir;
-      if(b.i===0||b.i===b.arc.length-1){b.end=true;b.chk=false}
+      if(b.i===0||b.i===b.arc.length-1){b.end=true;b.chk=false;this.plan(turn)}
       this.t++;ev.push('step');return ev;
     }
   }
-  // tick length (seconds) as seen on the real unit: it speeds up through every 100 catches,
-  // then falls back to a slower tick at the start of the next hundred
-  const A0=[[0,.40],[4,.364],[8,.333],[12,.25],[22,.235],[33,.231],[43,.218],[55,.203],[61,.197],[80,.174],[95,.158],[99,.152]];
-  function tickA(n){
-    const L=Math.floor(n/100),p=n%100;
-    if(L===0){for(let i=1;i<A0.length;i++)if(p<=A0[i][0]){const a=A0[i-1],b=A0[i];return a[1]+(b[1]-a[1])*(p-a[0])/(b[0]-a[0])}return .152}
-    const base=[0,.231,.219,.178][L]??Math.max(.1,.178-.018*(L-3));
-    return Math.max(.085,base-.00105*p);
-  }
-  function tickB(n){
-    const L=Math.floor(n/100),p=n%100;
-    const base=[.386,.355,.33,.29,.225][L]??Math.max(.1,.225-.035*(L-4));
-    return Math.max(.085,base-.00145*p);
-  }
+  // tick length (seconds) vs catches. Tuned for fairness: starts at the slowest speed of the real unit (a bit slower),
+  // then speeds up smoothly and monotonically (no fall-back to a slower tick) towards a human-playable cap.
+  const tickA=n=>.12+(.46-.12)*Math.exp(-n/90);
+  const tickB=n=>.11+(.40-.11)*Math.exp(-n/80);
   let els=null,sim=null,pose=3,timer=null,mode='A',score=0,dyingT=null;
 
   function build(svg){
@@ -538,7 +588,7 @@ const BALL=(()=>{
 
   function start(m){
     mode=m;clearTimeout(timer);clearTimeout(dyingT);
-    sim=new Sim();pose=3;score=0;
+    sim=new Sim(()=>tickMs()/1000);pose=3;score=0;
     state='play';hideOv();render();sfx.start();setPauseUI();wake();
     timer=setTimeout(tick,700);
   }
@@ -551,7 +601,7 @@ const BALL=(()=>{
       dyingT=setTimeout(()=>{if(state==='dying'&&cur===BALL)showOver(G.ball,mode,score,'ONE BALL DROPPED · CRUSH!')},2600);
       return;
     }
-    if(ev.includes('catch')){sfx.catch();buzz(10)}else sfx.tock();
+    if(ev.includes('catch')){sfx.tock();sfx.catch();buzz(10)}else sfx.tock();
     render();
     timer=setTimeout(tick,tickMs());
   }
@@ -610,15 +660,46 @@ const VERMIN=(()=>{
   [MOUND,MOLE,STRIKE].forEach(o=>{for(const k in o)[].concat(o[k]).forEach(x=>ALLG.add(x))});
   CELLS.forEach(c=>Object.values(c).forEach(x=>ALLG.add(x)));
   MISSG.concat([40]).forEach(x=>ALLG.add(x));IDLE.forEach(a=>a.forEach(x=>ALLG.add(x)));Object.values(HITSET).forEach(a=>a.forEach(x=>ALLG.add(x)));
-  const pickGap=m=>{const t=GAPS[m],tot=t.reduce((a,b)=>a+b[1],0);let r=Math.random()*tot;for(const[g,w]of t){if((r-=w)<0)return g}return 2};
-  const tickLen=sc=>Math.max(.30,.58-.00045*sc);
+  // Tuned: moles start sparse (long gaps, one at a time) and blend into the footage-fitted gap odds as the score climbs;
+  // the number of moles that may be up at once also grows with the score.
+  const EARLY={A:[[4,3],[5,4],[6,3]],B:[[3,3],[4,4],[5,3]]};
+  const RAMP={A:200,B:250},MAXLIVE={A:3,B:3};
+  const pickFrom=t=>{const tot=t.reduce((a,b)=>a+b[1],0);let r=Math.random()*tot;for(const[g,w]of t){if((r-=w)<0)return g}return 2};
+  const pickGap=(m,sc)=>pickFrom(Math.random()<Math.min(1,sc/RAMP[m])?GAPS[m]:EARLY[m]);
+  // tick length (s) vs score: slow start, smooth monotonic speed-up to a humanly playable cap
+  const tickLen=(sc,m)=>m==='B'?.32+(.66-.32)*Math.exp(-sc/140):.35+(.70-.35)*Math.exp(-sc/130);
 
   class Sim{
     constructor(m){this.m=m;this.cols=m==='B'?[0,1,2,3,4]:[0,1,3,4];this.s=[0,0,0,0,0];this.hit=[0,0,0,0,0];
-      this.score=0;this.miss=0;this.ret=null;this.gap=1;this.over=false;this.lastHit=null}
+      this.score=0;this.miss=0;this.ret=null;this.gap=3;this.over=false;this.lastHit=null;
+      this.tc=0;this.pose=1;this.pcT=-9}
+    // Is there still a way for a player (one hand move per ~.45 s, one step per move) to hit every live mole plus a new one at hole nc?
+    // Each mole can be hit on two consecutive ticks; the check is a tiny search over the next 4 ticks of poses.
+    feasible(nc){
+      const ms=[];
+      for(const c of this.cols){const s=this.s[c];if(s>=1&&!this.hit[c])ms.push({c,w:[5-s]})}
+      ms.push({c:nc,w:[4]});
+      const mv=Math.max(1,Math.ceil(.45/tickLen(this.score,this.m))),full=(1<<ms.length)-1;
+      let cur=new Set([this.pose+','+(this.pcT-this.tc)+',0']);
+      for(let t=1;t<=4;t++){
+        const nx=new Set();
+        for(const k of cur){
+          const [p,l,mk]=k.split(',').map(Number);
+          for(let q=Math.max(0,p-1);q<=Math.min(2,p+1);q++){
+            if(q!==p&&t-l<mv)continue;
+            let m2=mk,dead=false;
+            ms.forEach((m,i)=>{if(m.w.includes(t)&&COVER[q].includes(m.c))m2|=1<<i;if(m.w[m.w.length-1]===t&&!(m2>>i&1))dead=true});
+            if(!dead)nx.add(q+','+(q!==p?t:l)+','+m2);
+          }
+        }
+        cur=nx;if(!cur.size)return false;
+      }
+      return [...cur].some(k=>+k.split(',')[2]===full);
+    }
     // advance one tick with the gardener on `pose`; returns events and the delay (seconds) before the next tick
     step(pose){
       const ev=[];let slow=false;
+      this.tc++;if(pose!==this.pose){this.pose=pose;this.pcT=this.tc}
       this.lastHit=null;
       if(this.ret){                           // a mole is escaping: the whole garden waits while its mounds sink
         const r=this.ret;this.s[r.c]=r.k-1;r.k--;
@@ -637,13 +718,18 @@ const VERMIN=(()=>{
           if(COVER[pose].includes(c)){this.hit[c]=1;this.score++;ev.push('hit');this.lastHit=c}
         }
       }
-      if(escaped>=0){this.ret={c:escaped,k:3};this.s[escaped]=3;ev.push('escape');return {ev,delay:tickLen(this.score)}}
+      if(escaped>=0){this.ret={c:escaped,k:3};this.s[escaped]=3;ev.push('escape');return {ev,delay:tickLen(this.score,this.m)}}
       for(const c of this.cols)if(this.s[c]===1||this.s[c]===2)this.s[c]++;
       if(--this.gap<=0){
-        const idle=this.cols.filter(c=>this.s[c]===0&&!this.hit[c]);
-        if(idle.length){this.s[idle[rnd(0,idle.length-1)]]=1;this.gap=pickGap(this.m);ev.push('spawn')}else this.gap=1;
+        const live=this.cols.filter(c=>this.s[c]>=1&&!this.hit[c]).length;
+        let idle=live>=Math.min(MAXLIVE[this.m],1+Math.floor(this.score/12))?[]:this.cols.filter(c=>this.s[c]===0&&!this.hit[c]);
+        while(idle.length){                // random hole, but only one that leaves the round winnable
+          const c=idle.splice(rnd(0,idle.length-1),1)[0];
+          if(this.feasible(c)){this.s[c]=1;this.gap=pickGap(this.m,this.score);ev.push('spawn');break}
+        }
+        if(this.gap<=0)this.gap=1;
       }
-      return {ev,delay:tickLen(this.score)};
+      return {ev,delay:tickLen(this.score,this.m)};
     }
   }
   let els=null,sim=null,pose=1,timer=null,mode='A',dyingT=null,blink=false;
@@ -772,6 +858,8 @@ const FLAGMAN=(()=>{
   const render=()=>draw(els,S);
   function reset(){S.pose=0;S.sq=0;S.col=0;S.flour=false;S.lives=3;S.score=0}
   const rand4=()=>rnd(1,4);
+  const POSE_HZ=[0,2733,2340,2049,1823];
+  const poseTone=n=>beep(POSE_HZ[n]||2049,.12,'square',.04);   /* measured: each flag has its own fixed tone */
 
   function start(m){
     mode=m;clearTimeout(timer);clearTimeout(stepT);clearTimeout(dyingT);tok++;
@@ -780,6 +868,8 @@ const FLAGMAN=(()=>{
     else after(1000,prompt);
   }
   /* ---------- Game A ---------- */
+  // tuned: signals start slower (0.4 s on + 0.4 s off, real unit .35/.35) and speed up slowly as the sequence grows
+  const sigMs=()=>Math.max(240,400-4*seq.length);
   function showSeq(){
     if(state!=='play')return;
     phase='show';idx=0;S.col=0;S.sq=0;S.pose=0;render();
@@ -787,8 +877,8 @@ const FLAGMAN=(()=>{
     const next=()=>{
       if(my!==tok||state!=='play')return;
       if(i>=seq.length){S.pose=0;render();after(500,()=>{if(my!==tok||state!=='play')return;phase='input';idx=0;S.col=5;render()});return}
-      S.pose=seq[i];render();sfx.signal(seq[i]);
-      after(350,()=>{S.pose=0;render();i++;after(350,next)});
+      S.pose=seq[i];render();poseTone(seq[i]);
+      const sg=sigMs();after(sg,()=>{S.pose=0;render();i++;after(sg,next)});
     };
     after(300,next);
   }
@@ -796,10 +886,10 @@ const FLAGMAN=(()=>{
     if(phase!=='input')return;
     phase='busy';
     if(seq[idx]!==n){fail();return}
-    S.pose=n;render();sfx.signal(n);buzz(10);
+    S.pose=n;render();poseTone(n);buzz(10);
     idx++;
     const last=idx>=seq.length;
-    after(300,()=>{
+    after(220,()=>{
       S.pose=0;
       if(last){
         S.col=0;S.score=seq.length;render();sfx.catch();
@@ -809,7 +899,7 @@ const FLAGMAN=(()=>{
     });
   }
   /* ---------- Game B ---------- */
-  const stepLen=()=>Math.max(.22,.52-.006*S.score)*1000;
+  const stepLen=()=>Math.max(.24,.62-.0038*S.score)*1000;   // tuned: .62 s/step (3.1 s per prompt) easing to .24 s by score 100
   function prompt(){
     if(state!=='play')return;
     phase='prompt';promptN=rand4();S.sq=promptN;S.pose=0;S.col=5;render();sfx.tock();
@@ -826,7 +916,7 @@ const FLAGMAN=(()=>{
     if(phase!=='prompt')return;
     clearTimeout(stepT);phase='busy';
     if(n!==promptN){fail();return}
-    S.pose=n;S.score=Math.min(99,S.score+1);render();sfx.signal(n);sfx.catch();buzz(10);
+    S.pose=n;S.score=Math.min(99,S.score+1);render();poseTone(n);sfx.catch();buzz(10);
     after(300,()=>{S.pose=0;S.sq=0;S.col=0;render();if(S.score>=99){showOver(G.flagman,mode,S.score,'PERFECT RUN!');return}after(250,prompt)});
   }
   /* ---------- shared ---------- */
@@ -951,13 +1041,15 @@ const ATTACK=(()=>{
     constructor(m){
       this.m=m;this.clock=0;this.score=0;this.miss=0;this.pose='LL';this.flash=0;
       this.lanes={LL:[],LR:[],UL:[],UR:[]};this.last={LL:-9,LR:-9,UL:-9,UR:-9};
-      this.asleep=m==='A'?'UL':null;this.sp=.7;this.fire=null;this.fade=0;this.erase=0;this.bonus=0;
+      this.asleep=m==='A'?'UL':null;this.sp=1.5;this.fire=null;this.fade=0;this.erase=0;this.bonus=0;
       this.flk=0;this.fl=[];this.over=false;this.armT=0;
     }
     dw(bonus){
-      const sc=this.score,h=Math.floor((sc%1000)/100),r=sc%100;
-      const base=this.m==='A'?1.00-.027*h:1.12-.035*h;
-      return base*(1.10-.0018*r)*((bonus??this.bonus>0)?1.18:1);
+      // TUNED (difficulty brief): smooth monotone ramp over the whole score, no per-hundred sawtooth and no reset at 1000.
+      // A 1.25 s -> .74 s per step at 1000 points; B 1.15 -> .72. (Footage fit was 1.10 s at 0 in A, 1.12*1.1 in B, saw-toothed.)
+      const sc=this.score,k=Math.min(1,sc/1000);
+      const base=this.m==='A'?1.25-.51*k:1.15-.43*k;
+      return base*((bonus??this.bonus>0)?1.18:1);
     }
     roll(){
       this.fl=FLAMES.filter(()=>Math.random()<.75);
@@ -976,7 +1068,7 @@ const ATTACK=(()=>{
         for(const q in this.lanes)for(const e of this.lanes[q])if(!e.kill&&Math.abs(this.arrival(e)-arr)<.55)ok=false;
         if(!ok)continue;
         this.lanes[l].push({st:1,t:0,dw,kill:-1,lit:false});this.last[l]=this.clock;
-        const g=pick(GAPS_A)*(this.m==='B'?.8:1);
+        const g=pick(GAPS_A)*(this.m==='B'?.8:1)*(1+.9*Math.max(0,1-this.score/300));   // TUNED: sparse at the start, normal from 300 points
         this.sp=g*dw;return;
       }
       this.sp=.15;
@@ -1016,7 +1108,7 @@ const ATTACK=(()=>{
           const e=arr[i];e.t+=dt;
           if(e.kill>=0){e.kill+=dt;if(e.kill>=e.end)arr.splice(i,1);continue}
           if(e.st<5){
-            if(e.t>=e.dw){e.t-=e.dw;e.st++;e.dw=this.dw();if(e.st===5){e.t=Math.min(e.t,.1);ev.push('arrive')}else ev.push('step')}
+            if(e.t>=e.dw){e.t-=e.dw;e.st++;e.dw=this.dw();ev.push(l[1]==='L'?'tL':'tR');if(e.st===5)e.t=Math.min(e.t,.1)}
           }else if(e.t>=.8*e.dw){
             e.lit=true;this.fire={t:0,lane:l,e,face:false,low:!!LANES[l].low};this.flash=0;ev.push('light');return ev;
           }
@@ -1101,11 +1193,12 @@ const ATTACK=(()=>{
     const now=performance.now();let dt=(now-last)/1000;last=now;
     dt=Math.min(dt,.1);bt+=dt;if(bugle>0)bugle-=dt;
     const ev=sim.update(dt);
-    if(ev.includes('hit')){sfx.catch();buzz(10)}
-    if(ev.includes('arrive'))sfx.tock();
-    if(ev.includes('light')){sfx.miss();buzz(40)}
-    if(ev.includes('miss')){sfx.crush();buzz(80)}
-    if(ev.includes('bonus')||ev.includes('erase'))sfx.start();
+    if(ev.includes('hit')){(sim.bonus>0&&!ev.includes('bonus')?sfx.signal:sfx.catch)();buzz(10)}
+    if(ev.includes('tL'))sfx.tock();
+    if(ev.includes('tR'))sfx.step();
+    if(ev.includes('light')){(sim.miss>=2?sfx.crush:sfx.miss)();buzz(40)}
+    if(ev.includes('miss'))buzz(80);
+    if(ev.includes('bonus')||ev.includes('erase'))sfx.bonus();
     if(ev.includes('over')){
       clearInterval(timer);state='dying';setPauseUI();bugle=1.2;render();sfx.over();
       let k=0;const tk=()=>{if(state!=='dying'||cur!==ATTACK)return;sim.update(.1);render();if(++k<12)dyingT=setTimeout(tk,100);else showOver(G.attack,mode,sim.score,'THREE FIRES')};
@@ -1166,6 +1259,10 @@ const ATTACK=(()=>{
    position left/right. No quad buttons (buttons "1-4" are not used by this game).
    Footage: 19-minute video 6LR7HP6wV0I. Between 0-42 s it is the clock/attract screen; Game A is played
    42-758 s (score 0 -> 788, three misses ends it); Game B is played 794-1136 s (score 0 -> 337, game over).
+   TUNED FOR FAIRNESS/RAMP (user request, overrides the footage where noted; see work/tune/chef): straight-line speed-up (A 0.85 -> 0.38 s,
+   B 1.00 -> 0.56 s per food step at 700 pts, no sawtooth) and the random apex choice is now constrained so that two foods are never judged closer
+   together than a score-dependent time for the lane distance (the first flight of a game is always the long one).
+
    VERIFIED from the footage (pixel-group time series of every LCD segment):
    - Four chef positions side by side, each with its own body segment and a pan segment (low = catching,
      high = just flipped). Four food lanes (one over each chef position), five heights per lane: 5 is the
@@ -1211,10 +1308,15 @@ const CHEF=(()=>{
   const ALLG=new Set([5,16,11,17,18,33].concat(BODY,MICE,MISSG));
   LANE.forEach(l=>l.forEach(x=>ALLG.add(x)));PAN.forEach(p=>p.forEach(x=>ALLG.add(x)));
   CELLS.forEach(c=>Object.values(c).forEach(x=>ALLG.add(x)));
-  const BASE_A=[.70,.66,.61,.56,.51,.50,.49,.48];
+  // DIFFICULTY (tuned, NOT the footage's curve; the unit's own sawtooth is dropped on purpose): the food step period falls in a
+  // straight line with the score, A from 0.85 s to 0.38 s, B from 1.00 s to 0.56 s, reached at 700 points (real unit: A 0.70 -> 0.27, B 0.89 -> 0.45).
+  const RAMP=sc=>Math.min(1,sc/700);
+  // FAIRNESS (tuned): the spawner (= the choice of how high each flipped food flies, i.e. when it comes down again) never lets two foods be
+  // judged closer together than these times, for lanes 1 / 2 / 3 positions apart. Falls with the score from the first to the second value.
+  const SEP=[[.9,.45],[1.3,.65],[1.7,.85]];
+  const CYC={3:3,2:5,1:7};                      // apex -> number of lane steps of one flight (4->apex->5)
   const ORDER={A:[1,0,2],B:[1,3,0,2]};          // lane turn order seen in the footage (B,A,C / B,D,A,C)
   const catDur=()=>.62*(1+Math.floor(-Math.log(1-Math.random())/.8));
-  const apexPick=()=>{const r=Math.random();return r<.4?1:r<.6?2:3};
 
   class Sim{
     constructor(m){
@@ -1226,15 +1328,76 @@ const CHEF=(()=>{
     }
     // lane period (seconds for one food step) fitted to the footage; the global tick is period/lanes
     period(){
-      const s=this.score,h=Math.floor(s/100),r=s%100;
-      if(this.m==='A')return Math.max(.2,BASE_A[Math.min(h,7)]-.0021*r);
-      return Math.max(.3,.89-.035*Math.min(h,9)-.0036*r);
+      const r=RAMP(this.score);
+      return this.m==='A'?.85-.47*r:1.0-.44*r;
     }
     tick(){return this.period()/this.n*(1+(Math.random()-.5)*.08)}
+    // ---- fair spawning: when will the food in lane i be judged, counted in global ticks from the next lane move (judge phase of a landed food = 0)
+    judgeIdx(i,pos,dir,apex){
+      let r=0;
+      while(pos!==5){if(dir<0){if(pos<=apex){dir=1;pos++}else pos--}else pos++;r++}
+      return this.judgeAfter(i,r);
+    }
+    judgeAfter(i,r){const n=this.n,m1=(((this.order.indexOf(i)-this.tk)%n)+n)%n;return m1+(r-1)*n+1}
+    others(skip){
+      const o=[];
+      for(let k=0;k<this.n;k++){
+        if(k===skip)continue;
+        const f=this.f[k];
+        if(f.pos===0)continue;
+        if(f.pos===5)o.push({lane:k,j:0});
+        else if(f.placed!==false)o.push({lane:k,j:this.judgeIdx(k,f.pos,f.dir,f.apex)});
+      }
+      return o;
+    }
+    // choose the apex of lane i's next flight among those that keep it clear of the other foods' judge times
+    pickApex(i,others,easy){
+      const sc=this.score,r=RAMP(sc),rr=Math.min(1,sc/300),tk=this.period()/this.n;
+      const w={3:.2+.3*rr,2:.4-.2*rr,1:.4-.1*rr};
+      let ap=[1,2,3];if(easy)ap=[1,2];
+      const bag=[],pool=ap.slice();       // weighted random order of the candidate apexes
+      while(pool.length){
+        let tot=0;for(const a of pool)tot+=w[a];
+        let x=Math.random()*tot,k=0;
+        while(k<pool.length-1&&(x-=w[pool[k]])>0)k++;
+        bag.push(pool.splice(k,1)[0]);
+      }
+      let bestA=bag[0],bestM=-1e9;
+      for(const a of bag){
+        const j=this.judgeAfter(i,CYC[a]);let margin=1e9;
+        for(const o of others){
+          const d=Math.abs(i-o.lane),sp=SEP[Math.min(3,d)-1],need=Math.ceil((sp[0]+(sp[1]-sp[0])*r)/tk)+1;
+          margin=Math.min(margin,Math.abs(j-o.j)-need);
+        }
+        if(margin>=0){this.fair=(this.fair||0)+1;return a}
+        if(margin>bestM){bestM=margin;bestA=a}
+      }
+      this.unfair=(this.unfair||0)+1;
+      return bestA;
+    }
+    // pick apexes for all foods at height 4 (start, relaunch after a miss, after the 200/500 bonus), one lane after the other
+    pickAll(first){
+      const lanes=[];for(let i=0;i<this.n;i++)lanes.push(i);
+      let o,ok;
+      for(let tries=0;tries<60;tries++){
+        lanes.sort(()=>Math.random()-.5);
+        const u0=this.unfair||0;
+        for(const i of lanes)this.f[i].placed=false;
+        o=[];
+        for(const i of lanes){
+          const a=this.pickApex(i,o,first&&tries<40);
+          const f=this.f[i];f.apex=a;f.placed=true;
+          o.push({lane:i,j:this.judgeIdx(i,4,-1,a)});
+        }
+        ok=(this.unfair||0)===u0;
+        if(ok)break;
+      }
+    }
     setFlash(){this.ph='flash';this.stage=0;this.pt=.65;this.cp=1;for(const f of this.f){f.pos=5;f.dir=1;f.flip=false;f.land=false}}
     launch(){
-      for(const f of this.f){f.pos=4;f.dir=-1;f.apex=apexPick();f.flip=false;f.land=false}
+      for(const f of this.f){f.pos=4;f.dir=-1;f.flip=false;f.land=false}
       this.tk=Math.floor(Math.random()*this.n);this.tt=this.tick();
+      this.pickAll(this.score===0&&this.miss===0&&!this.started);this.started=true;
       this.ph='play';
     }
     // advance the clock by dt seconds; returns a list of events
@@ -1248,7 +1411,7 @@ const CHEF=(()=>{
         this.pt-=dt;
         if(this.pt<=0){
           if(this.stage===0){this.stage=1;this.pt=.17;for(const f of this.f){f.pos=4;f.dir=-1}}
-          else this.launch();
+          else{this.launch();ev.push('relaunch')}
         }
       }else if(this.ph==='play'){
         this.tt-=dt;
@@ -1275,7 +1438,8 @@ const CHEF=(()=>{
         this.icon=Math.floor(this.bt/.25)%2===0;
         if(this.bt>=2.5){
           this.miss=0;this.icon=true;
-          for(const f of this.f){f.pos=4;f.dir=-1;f.apex=apexPick();f.flip=false;f.land=false}
+          for(const f of this.f){f.pos=4;f.dir=-1;f.flip=false;f.land=false}
+          this.pickAll(false);
           this.f[this.cp].flip=true;this.ph='play';
         }
       }
@@ -1289,8 +1453,8 @@ const CHEF=(()=>{
           f.land=false;
           if(this.cp===i){
             this.score=Math.min(999,this.score+1);
-            f.pos=4;f.dir=-1;f.apex=apexPick();f.flip=true;
-            if((this.score===200||this.score===500)&&this.miss>0){this.ph='bonus';this.bt=0;this.icon=true;ev.push('bonus');return}
+            f.pos=4;f.dir=-1;f.flip=true;f.apex=this.pickApex(i,this.others(i),false);
+            if((this.score===200||this.score===500)&&this.miss>0){this.ph='bonus';this.bt=0;this.icon=true;ev.push('catch');ev.push('bonus');return}
             ev.push('catch');
           }else{
             f.pos=0;this.ph='mouse';this.ml=i;this.mt=0;
@@ -1306,6 +1470,7 @@ const CHEF=(()=>{
         if(f.pos<=f.apex){f.dir=1;f.pos++}else f.pos--;
       }else f.pos++;
       if(f.pos===5){f.land=true;ev.push('land')}
+      ev.push('tick');
     }
     mouseIdx(){                         // 0-based index into MICE of the mouse currently shown
       const m0=this.ml+1;
@@ -1333,7 +1498,9 @@ const CHEF=(()=>{
     clearAll(e);
     set(e,'g'+(sm.m==='B'?17:18),true);
     // cat: leaning pose lights the fork segment that doubles as lane A height 3
-    if(sm.cat){set(e,'g5',true);set(e,'g33',true)}else set(e,'g16',true);
+    // (user request: the fork food shares a segment with lane A height 3 and looked like a duplicate of a real
+    //  falling food, so it only lights while no real food is in lane A; the real unit lights it regardless)
+    if(sm.cat){set(e,'g5',true);if(!(sm.f[0]&&sm.f[0].pos>0))set(e,'g33',true)}else set(e,'g16',true);
     const flash=sm.ph==='flash';
     for(let i=0;i<sm.n;i++){
       const f=sm.f[i];
@@ -1367,10 +1534,10 @@ const CHEF=(()=>{
     const ev=sim.update(dt);
     for(const x of ev){
       if(x==='catch')sfx.catch(),buzz(8);
-      else if(x==='land')sfx.tock();
-      else if(x==='hop')sfx.tock();
-      else if(x==='miss'){sfx.miss();buzz(50);if(sim.miss>=2){state='dying';setPauseUI()}}
-      else if(x==='bonus'){sfx.start()}
+      else if(x==='tick')sfx.tock();
+      else if(x==='relaunch')sfx.start();
+      else if(x==='miss'){[sfx.step,sfx.signal,sfx.miss,sfx.crush][sim.ml]();buzz(50);if(sim.miss>=2){state='dying';setPauseUI()}}
+      else if(x==='bonus'){sfx.bonus()}
       else if(x==='over'){
         render();clearInterval(timer);timer=null;
         showOver(G.chef,mode,sim.score,'THREE FOODS LOST');
@@ -1411,7 +1578,7 @@ const CHEF=(()=>{
     },
     build,demo,render,start,move,
     score:()=>sim?sim.score:0,
-    mode:()=>mode,
+    mode:()=>mode,_Sim:Sim,
     pause(){clearInterval(timer);timer=null},
     resume(){run()},
     idle(){if(sim&&state!=='play'&&state!=='dying'){sim.cat^=1;render()}},
@@ -1493,12 +1660,13 @@ const EGG=(()=>{
   const TA=[[.409,.395,.379,.367,.346],[.394,.376,.362,.343,.320],[.376,.353,.346,.320,.292],[.351,.341,.321,.299,.272],[.332,.317,.297,.274,.257],[.318,.293,.269,.258,.234],[.289,.272,.251,.222,.208]];
   const TB=[[.347,.330,.314,.299,.280],[.332,.307,.299,.282,.266],[.311,.291,.276,.262,.236],[.284,.273,.252,.240,.213],[.274,.260,.245,.230,.215]];
   const GN=[1.2,1,1,.89,.79];                     // x tick length by busy-chute count after the tick
+  /* TUNED (difficulty brief): the measured tables TA/TB above are saw-toothed and start at .41 s; the game now uses a smooth, monotone
+     ramp instead (kept for reference/fit only).  Base tick for two busy chutes: A .56 s at 0 points -> .21 s at 800+, B .50 -> .20. */
   function tickLen(m,s){
-    const T=m==='B'?TB:TA,h=Math.floor(s/100),r=s%100;
-    const row=hh=>hh<T.length?T[hh]:T[T.length-1].map(v=>v-.022*(hh-T.length+1));
-    const f=(hh,rr)=>{const R=row(hh);const x=Math.max(0,Math.min(4,(rr-10)/20));const i=Math.min(3,Math.floor(x));return R[i]+(R[i+1]-R[i])*(x-i)};
-    return Math.max(.15,f(h,r));
+    return m==='B'?Math.max(.20,.50-.00038*s):Math.max(.21,.56-.00044*s);
   }
+  /* minimum time (s) between two exits at DIFFERENT chutes (the wolf must switch): generous at the start, shrinking slowly */
+  const gapMin=s=>Math.max(.62,1.1-.0007*s);
   class Sim{
     constructor(m){
       this.m=m;this.eggs={LU:[],RU:[],LL:[],RL:[]};this.score=0;this.miss=0;     // miss counts HALVES
@@ -1509,7 +1677,7 @@ const EGG=(()=>{
     busy(){return RING.filter(c=>this.eggs[c].length).length}
     base(){
       const s=this.score,h=Math.floor(s/100),r=s%100;
-      let b=(h===0&&r<5)?1:2;
+      let b=(h===0&&r<10)?1:2;     // TUNED: one egg for the first 10 points (was 5)
       if(r>=[50,50,40,30,20,0][Math.min(h,5)])b=3;
       if(r>=[90,80,90,90,80,60,40,20][Math.min(h,7)])b=4;
       return this.rest>0?Math.min(b,2):b;
@@ -1519,11 +1687,31 @@ const EGG=(()=>{
       if(this.m==='A'&&c==='LL'&&this.rest<=0)return false;
       return !this.eggs[c].includes(0)&&!this.eggs[c].includes(1);     // eggs in a chute stay >= 2 cells apart
     }
+    // TUNED: predicted exit times of every egg now on the board (no further spawns); true when no two exits at different chutes are closer than gapMin
+    gapOK(ptr){
+      const eg={};for(const c of RING)eg[c]=this.eggs[c].slice();
+      const T=tickLen(this.m,this.score);
+      let p=ptr,t=0,last=null;
+      for(let k=0;k<80;k++){
+        let tc=null;for(let i=1;i<=4;i++){const c=RING[(p+i)%4];if(eg[c].length){tc=c;p=(p+i)%4;break}}
+        if(tc===null)return true;
+        const out=eg[tc].includes(4);
+        eg[tc]=out?eg[tc].filter(x=>x!==4):eg[tc];
+        eg[tc]=eg[tc].map(x=>x+1);     // (an egg at cell 4 leaves instead of advancing; the others advance)
+        const nb=RING.filter(c=>eg[c].length).length;
+        t+=T*GN[nb];
+        if(out){
+          if(last&&last.c!==tc&&t-last.t<gapMin(this.score)*.92)return false;
+          last={c:tc,t};
+        }
+      }
+      return true;
+    }
     clear(){for(const c of RING)this.eggs[c]=[]}
     restart(){this.clear();this.rest=12}
     // one tick with the wolf at `pos`. returns {ev:[...],delay}
     step(pos){
-      const ev=[];
+      const ev=[];this.lastTick=-1;
       const E=this.count(),B=this.base();
       const at4=RING.some(c=>this.eggs[c].includes(4));
       const want=E<B||(E===B&&this.transient()&&at4);
@@ -1535,7 +1723,7 @@ const EGG=(()=>{
       if(this.rest>0)this.rest--;
       const single=B===1;
       if(tc===null)return {ev,delay:tickLen(this.m,this.score)*GN[0]};
-      this.ptr=RING.indexOf(tc);
+      this.ptr=RING.indexOf(tc);this.lastTick=this.ptr;
       const a=this.eggs[tc];
       const canNew=want&&!a.includes(0)&&(this.canSpawn(tc)||a.length>0&&!a.includes(0)&&!(this.m==='A'&&tc==='LL'&&this.rest<=0));
       let out=false;
@@ -1547,7 +1735,7 @@ const EGG=(()=>{
           if(this.score>=999)ev.push({t:'max'})}
         else ev.push({t:'miss',c:tc});
       }
-      if(canNew){a.push(0);a.sort((x,y)=>x-y);ev.push({t:'spawn',c:tc})}
+      if(canNew){a.push(0);a.sort((x,y)=>x-y);if(this.gapOK(this.ptr))ev.push({t:'spawn',c:tc});else a.splice(a.indexOf(0),1)}
       let d=tickLen(this.m,this.score)*GN[this.busy()];
       if(single&&this.count()<=1)d=tickLen(this.m,this.score)*(this.count()?1.96:GN[0]);
       return {ev,delay:d};
@@ -1616,7 +1804,7 @@ const EGG=(()=>{
       else if(e.t==='reset')rst=true;
       else if(e.t==='max')max=true;
     }
-    if(!r.ev.length||r.ev[0].t==='spawn')sfx.tock();
+    if(sim.lastTick>=0)[sfx.tock,sfx.step,sfx.signal,sfx.crush][sim.lastTick]();
     if(miss){beginMiss(miss.c);return}
     render();
     if(max){state='dying';setPauseUI();dyingT=setTimeout(()=>{if(state==='dying'&&cur===EGG)showOver(G.egg,mode,sim.score,'999 · THE COOP IS EMPTY')},1500);return}
@@ -1644,7 +1832,7 @@ const EGG=(()=>{
     sim.restart();render();after(260,tick);
   }
   function beginReset(delay){
-    frozen=true;resetBlink=true;sfx.catch();
+    frozen=true;resetBlink=true;sfx.bonus();
     render();
     fxAfter(5100,()=>{clearFx();frozen=false;resetBlink=false;sim.miss=0;render();after(delay*1000,tick)});
   }
@@ -1753,8 +1941,15 @@ const HELMET=(()=>{
   const G_IN=13,G_DOOR_OPEN=9,G_DOOR_SHUT=19,G_DEAD=2,G_A=12,G_B=10;
   const ALLG=[];for(let k=2;k<=64;k++)if(k!==37&&k!==43)ALLG.push(k);
   const STEPS=5,HIT_T=.45,DEAD_T=1.8,DEAD_LIT=.93,BONUS_T=5.2,OVER_T=3.2;
-  const period=(m,sc)=>m==='A'?.90:Math.max(.68,.90-.00052*sc);
-  const spawnP=(m,sc)=>m==='A'?.115+.00018*sc:.16+.00012*sc;
+  /* TUNING (difficulty ramp + fairness; replaces the unit-exact speeds / density, which a bot with 0.3 s reaction could not survive):
+     - tool step (seconds per stage), smooth in the score: A 1.10 s -> 0.80 s, B 1.00 s -> 0.68 s, linearly over the first 500 points, then constant.
+     - spawn probability per tick starts low (about 0.2 tools/s) and rises with the score, capped.
+     - two tools in ADJACENT columns are never allowed to reach the bottom within 9 ticks (~1.6 s) of each other, so there is always a free
+       neighbouring spot to step to (before, 5 tools could land in all 5 columns within 0.7 s = nowhere to stand).
+     - the guessed "pair of workers" start is switched off (always one worker). */
+  const period=(m,sc)=>{const q=Math.min(1,sc/500);return m==='A'?1.10-.30*q:1.00-.32*q};
+  const spawnP=(m,sc)=>m==='A'?Math.min(.20,.05+.00022*sc):Math.min(.22,.07+.00018*sc);
+  const ADJ_GAP=9;
   const doorOpen=(m,t)=>{if(m==='A')return t%20<10;const p=t%10;return p<2||(p>=4&&p<6)};
 
   class Sim{
@@ -1843,6 +2038,7 @@ const HELMET=(()=>{
       return ev;
     }
     tick(ev){
+      if(this.tools.length)ev.push('tick');
       for(const t of this.tools){
         if(t.hit>0&&t.age>=STEPS*5-1)t.age=STEPS*5-1;else t.age++;
       }
@@ -1855,7 +2051,7 @@ const HELMET=(()=>{
         }
       }
       if(this.startDelay<=0&&Math.random()<spawnP(this.m,this.score)){
-        const free=[0,1,2,3,4].filter(c=>!this.tools.some(t=>t.c===c&&t.age<2*STEPS));
+        const free=[0,1,2,3,4].filter(c=>!this.tools.some(t=>(t.c===c&&t.age<2*STEPS)||(Math.abs(t.c-c)===1&&t.age<ADJ_GAP)));
         if(free.length)this.tools.push({c:free[rnd(0,free.length-1)],age:0,hit:0});
       }
     }
@@ -1903,9 +2099,9 @@ const HELMET=(()=>{
     for(const x of ev){
       if(x==='step')sfx.move();
       else if(x==='enter'){sfx.catch();buzz(10)}
-      else if(x==='point')sfx.tock();
+      else if(x==='tick')sfx.tock();
       else if(x==='hit'){sfx.crush();buzz(250)}
-      else if(x==='bonus')sfx.start();
+      else if(x==='bonus')sfx.bonus();
       else if(x==='dying'){state='dying';setPauseUI()}
       else if(x==='over'){stop();render();showOver(G.helmet,mode,sim.score,'THREE MISSES');return}
     }
@@ -1916,7 +2112,7 @@ const HELMET=(()=>{
 
   function start(m){
     mode=m;
-    sim=new Sim(m,Math.random()<.5);
+    sim=new Sim(m,false);
     state='play';hideOv();render();sfx.start();setPauseUI();wake();go();
   }
   function move(d){
@@ -1945,7 +2141,7 @@ const HELMET=(()=>{
     draw(pe,dSim,dm);
   }
   return {
-    id:'helmet',name:'HELMET',code:'CN-07',vb:[736,480],
+    _t:{Sim,period,spawnP},id:'helmet',name:'HELMET',code:'CN-07',vb:[736,480],
     blurb:'Workers pour out of the building and head for the shed while tools rain down. Left and right walk every worker one step; slip through the door while it is open and keep clear of the hammers, buckets, pliers, screwdrivers and wrenches. Three hits and it&rsquo;s over. Game B drops them faster.',
     mount(){els=build($('lcd'));sim=new Sim('A',false);sim.startDelay=99;mode='A';render()},
     build,demo,render,start,move,
@@ -2025,12 +2221,19 @@ const JUDGE=(()=>{
     pts[o]=x===y?1:2;return{type:'wdodge',winner:o,loser:side,pts}
   }
   function pickTempo(){const t=TEMPO_A.reduce((a,b)=>a+b[1],0);let r=Math.random()*t;for(const[v,w]of TEMPO_A){if((r-=w)<0)return v}return .4}
+  /* TUNING (difficulty ramp, replaces the unit-exact CPU speed): progress p = player's score / 99.
+     The CPU's reaction time (seconds after the reveal) goes 1.6 -> 0.4 linearly, the round tempo 0.7 -> 0.4 (solo B: 0.85 -> 0.5),
+     and the CPU's hit-back chance after a wrong hit 20% -> 60%. The CPU's choice accuracy stays as fitted. */
+  const lerp=(a,b,p)=>a+(b-a)*p;
+  const prog=()=>Math.max(0,Math.min(1,sc.L/99));
+  function rampTempo(){const p=prog(),base=mode==='A'?lerp(.7,.4,p):lerp(.85,.5,p);return Math.max(.3,Math.min(mode==='A'?.7:.85,base+(Math.random()-.5)*.1))}
   const gauss=()=>{let s=0;for(let i=0;i<4;i++)s+=Math.random();return (s-2)*1.7};
   // what the unit's own judge (right) does this round: {kind, t} t = seconds after the reveal
   function cpuPlan(nums,tempo){
     const x=nums.R,y=nums.L;let hit;
     if(x<y)hit=Math.random()<.20;else if(x===y)hit=Math.random()<.36;else hit=Math.random()<.43;
-    return{kind:hit?'hit':'dodge',t:Math.max(.15,.26+.4*tempo+.06*gauss())};
+    const p=prog(),d=lerp(mode==="A"?1.6:1.4,.4,p);
+    return{kind:hit?'hit':'dodge',t:Math.max(.35,d+.08*gauss())};
   }
   const cap=v=>Math.min(99,v);
 
@@ -2079,7 +2282,7 @@ const JUDGE=(()=>{
   /* ---------- round flow ---------- */
   function beginRound(){
     clearT();clearTimeout(cpuT);phase='idle';tieFirst=null;stage=null;nums=null;tri=0;tapOn=false;
-    tempo=mode==='A'||(mode==='B'&&!B_TWO_PLAYER)?(mode==='A'?pickTempo():TEMPO_B):TEMPO_B;
+    tempo=twoP()?TEMPO_B:rampTempo();
     idleView();
     let t=0;
     if(mode==='A'){                                    // four foot toggles, then the arrows: 4.8 tempo steps in all
@@ -2089,7 +2292,7 @@ const JUDGE=(()=>{
     after(t,()=>countdown(3));
     function countdown(n){
       if(n===0){reveal();return}
-      tri=n;idleView();sfx.step();beep(1250,.05,'square',.03);
+      tri=n;idleView();sfx.step();
       after(tempo*1000,()=>countdown(n-1));
     }
   }
@@ -2128,9 +2331,9 @@ const JUDGE=(()=>{
   function resolve(r){
     if(r.type==='wrong'){                                   // stage 1: wrong hit scored +2 for the other side, then a hit-back window
       phase='stage';stage=r;addPts(r.pts);
-      setView({[r.hitter]:'strike'});sfx.tock();
+      setView({[r.hitter]:'strike'});
       if(twoP()||r.counter==='L'){/* the human side may answer for 1.0 s */}
-      else if(Math.random()<.6)after(380+Math.random()*80,counter);       // the CPU hits back (guess 60%)
+      else if(Math.random()<lerp(.2,.6,prog()))after(380+Math.random()*80,counter);       // the CPU hits back (guess, ramped 20% -> 60%)
       after(1000,()=>{if(phase==='stage')finish({loser:r.hitter})});      // unanswered: the wrong hitter blinks (guess)
       return;
     }
@@ -2147,7 +2350,7 @@ const JUDGE=(()=>{
     phase='scene';addPts({L:c==='L'?3:0,R:c==='R'?3:0});
     const pose={L:'idle',R:'idle'};
     pose[c]='strike';pose[r.hitter]='strikehurt';
-    setView(pose);sfx.tock();
+    setView(pose);
     finish({loser:r.hitter});
   }
   function mutual(){
@@ -2232,7 +2435,7 @@ const JUDGE=(()=>{
     idle(){},
     intro:()=>`<div class="big">JUDGE</div><div class="sm">HIT WHEN YOUR NUMBER IS HIGHER OR EQUAL · DODGE WHEN LOWER</div>
       <div class="sm">A: YOU VS THE UNIT · B: TWO PLAYERS · FIRST TO 99 · BEST A ${best.judge.A} · B ${best.judge.B}</div>`,
-    _t:{judge,cpuPlan,pickTempo,draw}
+    _t:{judge,cpuPlan,pickTempo,draw,st:()=>({phase,nums,sc,tempo,over,revealAt})}
   };
 })();
 
@@ -2275,6 +2478,9 @@ const JUDGE=(()=>{
    Sources: the footage (YouTube XPjHgXeZ-4c); web search: NintendoWiki (niwanetwork.org/wiki/Lion): two keepers with chairs, 2 pts per save;
      smashtopia / game-watch fandom summaries: 3 misses end the game, misses cleared at 200 and 500, A = 2 lions, B = 3 lions
      (one source says 1 point per save, one source calls B easier; the footage shows +2 and an identical speed curve, trust footage).
+   TUNED (difficulty pass, overrides the "exactly like the unit" rule): smooth step-interval ramp (A .75 s / B .65 s median -> .24 s, no per-100 sawtooth);
+     keeper excursion .80 -> .45 s and door-check delay .60 -> .30 s as the score rises (unit: .37-.52 / .26); first lion move after 1.5 s;
+     spawner rule: never two lions in one side's door zone (door cell + the cell before it), and early (A <60, B <30 pts) only one lion in any zone.
    ===================================================================== */
 const LION=(()=>{
   const LG=[[19,20,24,29,32,17],[18,22,26,31,27,16],[23,25,30,28,33,21]];   // lion cells [row][col 0=left door .. 5=right door]
@@ -2293,7 +2499,12 @@ const LION=(()=>{
   const STICK={A:.55,B:.60};
   const JIT=[.70,.78,.81,.85,.89,.91,.93,.97,1.0,1.01,1.04,1.09,1.16,1.22,1.32,1.83];
   const FLOOR=[.33,.30,.27,.24,.22];
-  const stepMed=sc=>{const b=Math.min(4,Math.floor(sc/100)),u=sc%100,fl=FLOOR[b];return fl+(.43-fl)*Math.max(0,Math.min(1,1-(u-30)/30))};
+  // TUNED (difficulty pass; replaces the unit's per-100 sawtooth): smooth ramp from a slow start (A .75 s / B .65 s median step,
+  // the unit's slowest is .43) down to the unit's fastest floor .24 s, no jumps.
+  const stepMed=(sc,m)=>{const s0=m==='B'?.65:.75;return .24+(s0-.24)*Math.exp(-sc/140)};
+  const keepE=sc=>.45+.35*Math.exp(-sc/150);          // keeper excursion: .80 s at start -> .45 s (unit: .37-.52)
+  const chkT=sc=>.30+.30*Math.exp(-sc/150);           // time from door arrival to the keeper check: .60 s at start -> .30 s (unit: .26)
+  const zoneOf=c=>c<=1?0:c>=4?1:-1;                   // left/right door zone (door column + the cell before it)
   const DT=.02;
   const R=()=>Math.random();
 
@@ -2313,19 +2524,19 @@ const LION=(()=>{
       this.score=0;this.miss=0;this.over=false;
       this.tam=[{row:1,until:0},{row:1,until:0}];
       this.anim=null;this.door=null;this.ev=[];this.last=-1;
-      this.resetField();this.nextMove=m==='B'?.4:.8;
+      this.resetField();this.nextMove=1.5;
     }
     resetField(){
       this.lions=START[this.m].map(x=>x.slice());
       this.tam=[{row:1,until:0},{row:1,until:0}];this.door=null;this.last=-1;
     }
     occ(r,c){return this.lions.some(l=>l[0]===r&&l[1]===c)}
-    interval(){return stepMed(this.score)*JIT[Math.floor(R()*JIT.length)]}
+    interval(){return stepMed(this.score,this.m)*JIT[Math.floor(R()*JIT.length)]}
     press(side,dir){            // dir -1 = up, +1 = down
       if(this.anim||this.over)return false;
       const k=this.tam[side];
       if(k.row!==1)return false;
-      k.row=dir<0?0:2;k.until=this.t+.37+R()*.15;
+      k.row=dir<0?0:2;k.until=this.t+keepE(this.score)+R()*.15;
       this.ev.push('press');return true;
     }
     tick(dt){
@@ -2348,20 +2559,21 @@ const LION=(()=>{
       }
       if(this.door){
         const d=this.door,e=t-d.arr;
-        if(!d.checked&&e>=.26){
+        const dl=chkT(this.score)-.26;
+        if(!d.checked&&e>=.26+dl){
           d.checked=true;
           const k=this.tam[d.side];
           if(k.row===d.r)d.hit=true;
           else{this.startMiss(d.side);return}
         }
-        if(d.hit&&!d.scored&&e>=.40){
+        if(d.hit&&!d.scored&&e>=.40+dl){
           d.scored=true;
           const old=this.score;this.score=Math.min(999,this.score+2);this.ev.push('hit');
           const crossed=[200,500].some(x=>old<x&&this.score>=x);
           if(crossed&&this.miss>0){this.anim={kind:'bonus',t0:t};d.bonus=true;this.tam[d.side].until=t+5.5-.07;this.ev.push('bonus');return}
           if(crossed)this.miss=0;
         }
-        if(d.hit&&d.scored&&!d.bonus&&e>=.67)this.leaveDoor();
+        if(d.hit&&d.scored&&!d.bonus&&e>=.67+dl)this.leaveDoor();
         return;
       }
       if(t>=this.nextMove)this.stepLion();
@@ -2370,7 +2582,7 @@ const LION=(()=>{
       const d=this.door;if(!d)return;
       const l=this.lions.find(l=>l[0]===d.r&&l[1]===d.c);
       if(l)l[1]=d.c===0?1:4;
-      this.door=null;this.nextMove=this.t+.3;
+      this.door=null;this.nextMove=this.t+.5;
     }
     startMiss(side){
       const d=this.door;
@@ -2379,11 +2591,18 @@ const LION=(()=>{
       this.anim={kind:'miss',t0:this.t,side,over:this.miss>=3};
       this.ev.push('miss');
     }
+    // FAIR-SPAWN RULE (tuned): never two lions in the same side's door zone (door cell + the cell before it) at once, because one
+    // keeper cannot be in two rows; early on (score < 60 in A, < 30 in B) not even one lion per side - only one lion in any zone.
+    zoneOk(i,r,c){
+      const z=zoneOf(c);if(z<0||(c!==1&&c!==4))return true;
+      const early=this.score<(this.m==='B'?30:60);
+      return !this.lions.some((l,j)=>j!==i&&(early?zoneOf(l[1])>=0:zoneOf(l[1])===z));
+    }
     stepLion(){
       // choose the mover: the last one again with the sticky probability, otherwise uniformly
       const free=[];
       this.lions.forEach((l,i)=>{
-        const o=opts(l[0],l[1],this.P).filter(x=>!this.occ(x[0],x[1]));
+        const o=opts(l[0],l[1],this.P).filter(x=>!this.occ(x[0],x[1])&&this.zoneOk(i,x[0],x[1]));
         if(o.length)free.push([i,o]);
       });
       if(!free.length){this.nextMove=this.t+.2;return}
@@ -2403,7 +2622,7 @@ const LION=(()=>{
         this.door={r:l[0],c:l[1],side:l[1]===0?0:1,arr:this.t,checked:false,hit:false,scored:false,bonus:false};
         this.ev.push('door');
         // a keeper who is already in the row holds there until the lion has gone
-        const k=this.tam[this.door.side];if(k.row===l[0]&&k.row!==1)k.until=Math.max(k.until,this.t+.6);
+        const k=this.tam[this.door.side];if(k.row===l[0]&&k.row!==1)k.until=Math.max(k.until,this.t+chkT(this.score)+.34);
       }else this.nextMove=this.t+this.interval();
     }
     takeEvents(){const e=this.ev;this.ev=[];return e}
@@ -2446,12 +2665,14 @@ const LION=(()=>{
     if(state!=='play'&&state!=='dying')return;
     const now=performance.now();let dt=Math.min(.25,(now-lastT)/1000);lastT=now;
     sim.tick(dt);
-    for(const ev of sim.takeEvents()){
-      if(ev==='move')sfx.tock();
+    const evs=sim.takeEvents();
+    for(const ev of evs){
+      if(ev==='move'){if(!evs.includes('door'))sfx.tock()}
+      else if(ev==='door')sfx.signal();
       else if(ev==='press'){sfx.move();buzz(8)}
       else if(ev==='hit'){sfx.catch();buzz(12)}
       else if(ev==='miss'){sfx.miss();buzz(50)}
-      else if(ev==='bonus')sfx.start();
+      else if(ev==='bonus')sfx.bonus();
       else if(ev==='over'){
         render();
         showOver(G.lion,mode,sim.score,'THREE LIONS GOT OUT');return;
@@ -2552,13 +2773,15 @@ const MANHOLE=(()=>{
   const ALLG=[];
   [MAN,FALLG,WTOP,WBOT,SHIRT,[32,33]].forEach(a=>a.forEach(x=>ALLG.push(x)));
   CELLS.forEach(c=>Object.values(c).forEach(x=>ALLG.push(x)));
-  const FLOOR=[.9,.8,.8,.7,.7];
-  // seconds per street step (a street steps once per period; the two streets alternate every half period)
+  // TUNING (difficulty ramp; replaces the unit-exact speeds, which a headless bot with 0.3-0.45 s reaction could not survive in Game B).
+  // seconds per street step (a street steps once per period; the two streets alternate every half period).
+  // Smooth in the score: A 1.50 s -> 1.00 s, B 1.30 s -> 0.84 s, linearly over the first 400 points, then constant (the cap).
   const period=(m,sc)=>{
-    if(m!=='B')return 1.1;
-    const b=Math.floor(sc/100),p=sc%100;
-    return Math.max(FLOOR[Math.min(b,4)]-(b>4?.05:0),1.1-.01*Math.max(0,p-(30-10*b)));
+    const q=Math.min(1,sc/400);
+    return m==='B'?1.30-.46*q:1.50-.50*q;
   };
+  // most walkers allowed on the streets at once: 1 for the first 40 points, +1 per 40 points, at most 6
+  const maxWalkers=sc=>Math.min(6,1+Math.floor(sc/40));
   const FREEZE=2.4,SPLASH=.9,LOCK=8;
 
   class Sim{
@@ -2582,9 +2805,20 @@ const MANHOLE=(()=>{
       if(!this.over){
         let ok=this.lock<=0;
         for(const s of nw)if(s>=lo&&s<=hi){const o=s-lo;if(o===1||o===3)ok=false}
+        // TUNING: a walker arriving on a hole of one street exactly ONE half-step (half a period) before/after a walker arrives on
+        // the other street needs a jump to the other row inside half a period: forbid that entry, so every jump to the other row has at least 3 half-steps of time
+        if(ok){
+          const arr=[];const cur=this.phase;                  // arrival times in half-steps from now
+          for(const s of nw){
+            const st=s<10?0:1,ds=st===0?[3,6]:[13,16];
+            for(const d of ds)if(d>s)arr.push(st===cur?2*(d-s):2*(d-s)-1);
+          }
+          for(const a of arr)for(const c of [6,12])if(Math.abs(a-c)===1)ok=false;
+        }
         if(ok){
           const n=nw.length;let p;
-          if(this.score<10)p=prevN===0?1:0;
+          if(nw.length>=maxWalkers(this.score))p=0;
+          else if(this.score<10)p=prevN===0?1:0;
           else{const b=Math.min(5,Math.floor(this.score/100));p=n===0?1:n<=2?.45:n===3?.27:n===4?.2+.04*b:n===5?.17+.045*b:n===6?.08+.03*b:0}
           if(Math.random()<p){this.w.push(lo);ev.push('enter')}
         }
@@ -2663,7 +2897,7 @@ const MANHOLE=(()=>{
     draw(pe,dSim,dPos,-1,dSim.m,true);
   }
   return {
-    id:'manhole',name:'MANHOLE',code:'MH-06',vb:[728,480],
+    _t:{Sim,period,DANGER},id:'manhole',name:'MANHOLE',code:'MH-06',vb:[728,480],
     blurb:'Pedestrians stroll over four open manholes. Four buttons jump the man with the cover to any hole: top-left, top-right, bottom-left, bottom-right. Be at a hole when a pedestrian steps onto it. Three falls and it&rsquo;s over. Game B speeds up inside every 100 points.',
     mount(){els=build($('lcd'));sim=new Sim('A');pos=3;splash=-1;render()},
     build,demo,render,start,move,
@@ -2687,6 +2921,10 @@ const MANHOLE=(()=>{
                                                       3 = bottom-left (LEFT, basket DOWN)           4 = bottom-right (RIGHT, basket DOWN)
    Arrow keys / left-right pads (move(-1/+1)) switch Mickey to the left / right side and keep the basket height.
    Keyboard: 1 2 3 4 or Q W / A S.  Tapping a corner of the LCD or a corner of the pads also presses 1-4.
+
+   TUNED FOR FAIRNESS/RAMP (user request, overrides the footage where noted; see work/tune/mouse): step period independent of the number of
+   active ramps and falling in a straight line (A 1.15 -> 0.50 s, B 1.05 -> 0.50 s at 700 pts), slower spawn rate at the start, first egg at 1.5 s,
+   and an egg is only released if its check time is >= 1.0 s (0.55 s at 700 pts) away from every egg that needs a different pose.
 
    WHAT THE FOOTAGE SHOWS (YouTube 1ww-uXebeA0: 39 min, ~18 min of Game A play, 20 min of Game B play in 2 games, clock between).
    Pixel-group analysis (70 groups, 30 fps re-measure for timing). Everything below is VERIFIED unless marked FITTED / GUESSED.
@@ -2745,8 +2983,14 @@ const MOUSE=(()=>{
   SPLAT.forEach(a=>a.forEach(x=>ALLG.add(x)));CHICK.forEach(a=>a.forEach(x=>ALLG.add(x)));
   CELLS.forEach(c=>Object.values(c).forEach(x=>ALLG.add(x)));
   const BTN={1:0,2:2,3:1,4:3};                         // button number -> pose
-  const NF=[0,.97,1,1.15,1.28];                        // step-period factor by number of ramps carrying eggs
-  const f2=(m,s)=>m==='B'?Math.max(.40,.75-.00022*s):Math.max(.38,.88-.00045*s);   // step period with 2 ramps
+  // DIFFICULTY (tuned, NOT the footage's curve): the step period no longer depends on how many ramps carry eggs (the unit's own
+  // +15..28 % with 3-4 ramps made the lanes drift against each other and the check times unpredictable) and falls in a straight line
+  // with the score: A 1.15 s -> 0.50 s, B 1.05 s -> 0.50 s, reached at 700 points (unit: A ~1.0 -> 0.49, B ~0.86 -> 0.51 at full lanes).
+  const R9=s=>Math.min(1,s/700);
+  const f2=(m,s)=>m==='B'?1.05-.55*R9(s):1.15-.65*R9(s);
+  // FAIRNESS (tuned): an egg is only released when its check time (the moment Mickey's pose counts) is at least this many seconds away
+  // from the check of every egg on a ramp that needs a DIFFERENT pose: 1.0 s at the start falling to 0.55 s at 700 points.
+  const SEPT=s=>1.0-.45*R9(s);
   const minnieOn=t=>t>=4.4&&Math.floor((t-4.4)/5)%2===0;
   const SPL_T=.43,CH_T=.57,NOCHICK_T=2.5,CHECK_D=.10,FLASH_T=4.4;
 
@@ -2754,7 +2998,7 @@ const MOUSE=(()=>{
     constructor(m){
       this.m=m;this.t=0;this.rt=0;this.score=0;this.mh=0;      // mh = misses in halves (6 = game over)
       this.eggs=[[],[],[],[]];this.pend=[0,0,0,0];this.next=[Infinity,Infinity,Infinity,Infinity];
-      this.checks=[];this.pose=0;this.spawnT=.5;
+      this.checks=[];this.pose=0;this.spawnT=1.5;
       this.phase='run';this.anim=null;this.flash=null;this.over=false;this.tb=0;
     }
     active(){
@@ -2762,26 +3006,34 @@ const MOUSE=(()=>{
       const off=[1,3,0,2][Math.min(3,Math.ceil(this.mh/2))];
       return [0,1,2,3].filter(l=>l!==off);
     }
-    nLanes(){let n=0;for(let l=0;l<4;l++)if(this.eggs[l].length||this.pend[l])n++;return Math.max(1,n)}
-    period(){return f2(this.m,this.score)*NF[Math.min(4,this.nLanes())]}
-    spawnGap(){const k=this.m==='B'?Math.max(1.2,2.0-.0012*this.score):Math.max(1.25,1.9-.0007*this.score);return f2(this.m,this.score)*k*(.55+.9*Math.random())}
-    stagger(P){
-      const o=this.next.filter(x=>x<Infinity);
-      if(!o.length)return this.rt+P;
-      let best=this.rt+P,bd=-1;
-      for(let k=0;k<=6;k++){
-        const c=this.rt+P*(.75+.25*k/6);
-        let d=Infinity;for(const x of o)d=Math.min(d,Math.abs(x-c));
-        if(d>bd){bd=d;best=c}
+    period(){return f2(this.m,this.score)}
+    spawnGap(){const k=this.m==='B'?Math.max(1.2,2.0-.00115*this.score):Math.max(1.25,2.0-.00107*this.score);return f2(this.m,this.score)*k*(.55+.9*Math.random())}
+    // predicted moments (seconds from now) at which Mickey's pose is judged for every egg that is on a ramp or about to be
+    events(){
+      const P=this.period(),ev=[];
+      for(const c of this.checks)ev.push({l:c.l,t:c.t-this.rt});
+      for(let l=0;l<4;l++){
+        const nx=this.next[l]-this.rt;
+        for(const p of this.eggs[l])ev.push({l,t:nx+(4-p)*P+CHECK_D});
+        if(this.pend[l])ev.push({l,t:nx+5*P+CHECK_D});
       }
-      return best;
+      return ev;
     }
+    fair(l,T,ev){const G=SEPT(this.score);for(const e of ev)if(e.l!==l&&Math.abs(e.t-T)<G)return false;return true}
     trySpawn(){
+      const P=this.period(),ev=this.events();
       const ls=this.active().slice().sort(()=>Math.random()-.5);
       for(const l of ls){
         if(this.pend[l]||this.eggs[l].includes(0))continue;
-        if(this.eggs[l].length){this.pend[l]=1;return true}
-        this.eggs[l].push(0);this.next[l]=this.stagger(this.period());return true;
+        if(this.eggs[l].length){
+          if(this.fair(l,this.next[l]-this.rt+5*P+CHECK_D,ev)){this.pend[l]=1;return true}
+          continue;
+        }
+        const offs=[0,1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);     // a free ramp may start at any phase of its step
+        for(const k of offs){
+          const off=P*(.1+.1*k);
+          if(this.fair(l,off+4*P+CHECK_D,ev)){this.eggs[l].push(0);this.next[l]=this.rt+off;return true}
+        }
       }
       return false;
     }
@@ -2791,7 +3043,7 @@ const MOUSE=(()=>{
       for(let i=0;i<a.length;i++)a[i]++;
       if(this.pend[l]){a.push(0);this.pend[l]=0}
       this.next[l]=a.length?this.rt+this.period():Infinity;
-      ev.push('step');
+      ev.push('t'+l);
     }
     resolve(c,ev){
       if(this.pose===c.l){
@@ -2813,7 +3065,7 @@ const MOUSE=(()=>{
         if(this.phase==='run'){
           this.rt+=h;
           for(let l=0;l<4;l++)if(this.next[l]<=this.rt)this.stepLane(l,ev);
-          if(this.phase==='run'&&this.rt>=this.spawnT){this.trySpawn();this.spawnT=this.rt+this.spawnGap()}
+          if(this.phase==='run'&&this.rt>=this.spawnT){this.spawnT=this.rt+(this.trySpawn()?this.spawnGap():.15)}
           for(let i=0;i<this.checks.length&&this.phase==='run';){
             if(this.checks[i].t<=this.rt){const c=this.checks.splice(i,1)[0];this.resolve(c,ev)}else i++;
           }
@@ -2895,10 +3147,10 @@ const MOUSE=(()=>{
     const now=performance.now();const dt=Math.min(.1,(now-last)/1000);last=now;
     const ev=sim.update(dt);
     for(const e of ev){
-      if(e==='step')sfx.tock();
+      if(e.length===2&&e[0]==='t')[sfx.tock,sfx.step,sfx.signal,sfx.crush][+e[1]]();
       else if(e==='catch'){sfx.catch();buzz(10)}
       else if(e==='miss'){sfx.miss();buzz(40)}
-      else if(e==='flash')sfx.pause();
+      else if(e==='flash')sfx.bonus();
       else if(e==='over'){state='dying';setPauseUI()}
       else if(e==='gameover'){
         clearInterval(timer);render();
@@ -2991,6 +3243,8 @@ const MOUSE=(()=>{
      3 lives, lives restored at 200 and 500 - all of this was confirmed by the footage.
    Extra: sprite `o_bg` is the printed colour art of the unit (sea, waves, ship, chest) with the plain LCD tone made transparent; it is optional
      (build() adds it first). `o_static` is only the always-on black ink (octopus body, boat diver slots, labels...).
+   TUNED (difficulty pass, overrides the "exactly like the unit" rule): tentacle step mean 1.40 s -> .62 s and pickup cycle .91 -> .58 s as ONE smooth curve
+     on the running score (the unit's curve sawtooths every 100 points).  No rule change; no unwinnable situation found (only standing in contact ~.95 s catches).
    ===================================================================== */
 const OCTOPUS=(()=>{
   const POS=[5,4,2,3,6];                 // diver sprite per spot (rope top .. chest)
@@ -3009,8 +3263,11 @@ const OCTOPUS=(()=>{
   const QP=[0,.05,.10,.20,.30,.40,.50,.60,.70,.80,.90,.95,1],QV=[.51,.68,.71,.77,.85,.95,.98,1.02,1.06,1.15,1.29,1.57,1.9];
   const quant=()=>{const u=Math.random();for(let i=1;i<QP.length;i++)if(u<=QP[i])return QV[i-1]+(QV[i]-QV[i-1])*(u-QP[i-1])/(QP[i]-QP[i-1]);return QV[QV.length-1]};
   const sp=s=>{s%=1000;return [s%100,Math.floor(s/100)]};
-  const stepMean=s=>{const[a,h]=sp(s);return Math.max(.5,1.114-.00238*a-.0276*h)};
-  const cycleLen=s=>{const[a,h]=sp(s);return Math.max(.55,.91-.00182*a-.02*h)};
+  // TUNED (difficulty pass; replaces the unit's per-100 sawtooth, which jumped back up every 100 points): one smooth curve on the
+  // running score (no wrap at 1000).  Tentacle step mean 1.40 s at the start (the unit's slowest is 1.11 s) falling to .62 s
+  // (about the unit's value near 999); pickup cycle .91 s falling to .58 s.
+  const stepMean=s=>.62+.78*Math.exp(-s/250);
+  const cycleLen=s=>.58+.33*Math.exp(-s/300);
   const REVERSE={A:.5,B:.56,C:.5,D:.3};   // Game B only: re-extend when retracting through level 1
   const HOLD=.95,CAUGHT_T=2.2,ABSENT_T=1.1,START_T=.35,BLINK_T=5;
   const BONUS=[[.25,BAGBOAT,0],[.3,BOATX,1],[.3,BAGBOAT,1],[.3,BOATX,1]];   // [seconds, flashing sprite, +points at its start]
@@ -3053,7 +3310,7 @@ const OCTOPUS=(()=>{
           if(this.m==='B'&&Math.random()<REVERSE[k]){t.dir=1;t.l=2}else{t.l=0;t.dir=1}
         }else t.l--;
       }
-      t.t=stepMean(this.score)*quant();
+      t.t=stepMean(this.score)*quant();this.ev.push('tstep');
     }
     pickup(){
       this.score++;this.treasure++;this.ev.push('tick');
@@ -3205,9 +3462,10 @@ const OCTOPUS=(()=>{
   function handle(ev){
     for(const x of ev){
       if(x==='tick'){sfx.step();buzz(8)}
+      else if(x==='tstep')sfx.tock();
       else if(x==='bonusbeat')sfx.catch();
       else if(x==='boat'){sfx.signal(1)}
-      else if(x==='blink')sfx.start();
+      else if(x==='blink')sfx.bonus();
       else if(x==='caught'){sfx.miss();buzz(60)}
       else if(x==='move')sfx.move();
     }
@@ -3299,6 +3557,9 @@ const OCTOPUS=(()=>{
    GUESSED: 200/500 with no misses showing just keeps playing (footage only had cases with misses); first man arrives 0.35 s
    after start; Game A/B real-unit pause (the footage dims the glass during pauses) is the shell's pause here.
    Sources: the footage itself (youtube e0oYZKUstDY); web: game-watch.fandom.com/wiki/Parachute, mariowiki.com Parachute (Game & Watch).
+   TUNED (difficulty pass, overrides the "exactly like the unit" rule): tick A .95 s / B .90 s -> .60 s smooth in score; spawn odds ramp .10->.26 (A), .12->.28 (B);
+     spawner only releases a man (or lets one out of the palm tree) if every man on screen stays catchable in sequence given a boat reaction/travel model
+     (reaction .40 -> .25 s, .32 -> .22 s per extra lane crossed).  Mechanics, sprites and scoring unchanged.
    ===================================================================== */
 const PARACHUTE=(()=>{
   // lanes: index 0=left 1=centre 2=right; each stage = list of sprite groups
@@ -3317,12 +3578,17 @@ const PARACHUTE=(()=>{
   CELLS.forEach(c=>Object.values(c).forEach(x=>ALLG.add(x)));
   [AMB,MISSF,ICON,TREE].forEach(a=>a.forEach(l=>l.forEach(x=>ALLG.add(x))));
   const MINGAP={A:2,B:3};
-  const tickLen=(sc,m)=>m==='A'?Math.max(.60,.70-.00016*Math.max(0,sc-350)):Math.max(.60,.69-.00013*Math.max(0,sc-350));
-  const spawnP=(sc,m)=>m==='B'?.22:(sc<100?.17+.0007*sc:sc<500?.24:Math.min(.31,.24+.000175*(sc-500)));
+  // TUNED (difficulty pass, replaces the unit's flat .70->.60): smooth ramp from a slow start (A .95 s, B .90 s per tick;
+  // the unit's slowest is .70) to the unit's fastest .60 s, no jumps.  Spawn odds also ramp up smoothly (A .10 -> .26, B .12 -> .28).
+  const tickLen=(sc,m)=>.60+((m==='B'?.90:.95)-.60)*Math.exp(-sc/170);
+  const spawnP=(sc,m)=>{const k=1-Math.exp(-sc/200);return m==='B'?.12+.16*k:.10+.16*k};
+  // FAIR-SPAWN model: the boat needs LAT s to react after a catch plus TAU s per extra lane crossed; a man is only released
+  // (spawned / let out of the palm tree) if every man on screen can still be caught in sequence with those costs.
+  const LAT=sc=>.25+.15*Math.exp(-sc/150), TAU=sc=>.22+.10*Math.exp(-sc/150), WIN=.3-.04;
   const holdTicks=()=>{const r=Math.random();return r<.31?2:r<.43?3:4+Math.floor(Math.random()*17)};
 
   class Sim{
-    constructor(m){this.m=m;this.lane=[[],[],[]];this.fin=[null,null,null];this.tree=null;
+    constructor(m){this.gate=null;this.m=m;this.lane=[[],[],[]];this.fin=[null,null,null];this.tree=null;
       this.boat=1;this.score=0;this.total=0;this.miss=0}
     boatTo(b){this.boat=b;return this.checkCatch()}
     checkCatch(){const ev=[];for(let l=0;l<3;l++){const f=this.fin[l];if(f&&!f.caught&&this.boat===l)ev.push(...this.catchIt(l))}return ev}
@@ -3338,11 +3604,12 @@ const PARACHUTE=(()=>{
       }
       if(this.tree&&l===2&&!ev.includes('snag')){
         if(this.tree.shown<this.tree.n)this.tree.shown++;
-        else if(!st.includes(3)){this.tree=null;st.push(3)}
+        else if(!st.includes(3)&&(!this.gate||this.gate(2,3))){this.tree=null;st.push(3)}
+        else this.tree.shown++;
       }
       const fi=st.findIndex(x=>x>=n-1);
       if(fi>=0){st.splice(fi,1);this.fin[l]={t:0,caught:false};ev.push('arrive');if(this.boat===l)ev.push(...this.catchIt(l))}
-      if((!st.length||Math.min(...st)>=MINGAP[this.m])&&Math.random()<spawnP(this.total,this.m)){st.push(0);ev.push('spawn')}
+      if((!st.length||Math.min(...st)>=MINGAP[this.m])&&Math.random()<spawnP(this.total,this.m)&&(!this.gate||this.gate(l,0))){st.push(0);ev.push('spawn')}
       return ev;
     }
     // dwell of the last stage; returns lane indexes that missed
@@ -3387,13 +3654,34 @@ const PARACHUTE=(()=>{
   }
   const render=()=>draw(els,sim,view());
 
+  // can every man on screen (plus a new one in lane nl at stage ns, `nl` = the lane being stepped right now) still be caught in order?
+  function feasible(nl,ns){
+    const T=tickLen(sim.total,mode),h=T/3,sc=sim.total;
+    const cp=(subI-1+300)%3,posOf=l=>ORDER.indexOf(l),men=[];
+    for(let l=0;l<3;l++){
+      const n=CH[l].length;
+      if(sim.fin[l]&&!sim.fin[l].caught)men.push({l,a:0,e:WIN-sim.fin[l].t+.04});
+      const d=((posOf(l)-posOf(ORDER[cp]))+3)%3||3;
+      for(const st of sim.lane[l]){const k=n-1-st;if(k<1)continue;const a=h*d+(k-1)*T;men.push({l,a,e:a+WIN})}
+    }
+    const n2=CH[nl].length;const a2=T*(n2-1-ns);men.push({l:nl,a:a2,e:a2+WIN});
+    men.sort((x,y)=>x.e-y.e||x.a-y.a);
+    let c=null,pl=-1;
+    for(const m of men){
+      let t=m.a;
+      if(pl>=0){const dl=Math.abs(m.l-pl);if(dl>0)t=Math.max(t,c+LAT(sc)+TAU(sc)*(dl-1));else t=Math.max(t,c)}
+      if(t>m.e)return false;
+      c=t;pl=m.l;
+    }
+    return true;
+  }
   function start(m){
-    mode=m;clearTimeout(timer);sim=new Sim(m);gt=0;subT=.35;subI=0;ambT=0;amb=null;mis=null;bonus=null;over=null;startT=.35;
+    mode=m;clearTimeout(timer);sim=new Sim(m);sim.gate=feasible;gt=0;subT=.35;subI=0;ambT=0;amb=null;mis=null;bonus=null;over=null;startT=.35;
     state='play';hideOv();render();sfx.start();setPauseUI();wake();
     last=performance.now();timer=setTimeout(loop,40);
   }
   function startMiss(l){
-    mis={stage:ENTRY[l],e:ENTRY[l],t:0,lane:l};sim.miss++;sfx.miss();buzz(40);
+    mis={stage:ENTRY[l],e:ENTRY[l],t:0,lane:l};sim.miss++;[sfx.signal,sfx.crush,sfx.miss][l]();buzz(40);
   }
   function advance(dt){
     gt+=dt;
@@ -3418,8 +3706,9 @@ const PARACHUTE=(()=>{
     subT-=dt;
     while(subT<=0&&!mis&&!bonus){
       const l=ORDER[subI%3];subI++;
+      const had=sim.lane[l].length>0;
       const ev=sim.step(l);
-      if(l===1)sfx.tock();
+      if(had)sfx.tock();
       handle(ev);
       subT+=tickLen(sim.total,mode)/3;
       if(mis||bonus)break;
@@ -3427,7 +3716,7 @@ const PARACHUTE=(()=>{
   }
   function handle(ev){
     if(ev.includes('catch')){sfx.catch();buzz(10)}
-    if(ev.includes('bonus')){bonus={t:0}}
+    if(ev.includes('bonus')){bonus={t:0};sfx.bonus()}
   }
   function loop(){
     if(state!=='play'&&state!=='dying'){return}
@@ -3458,7 +3747,7 @@ const PARACHUTE=(()=>{
   return {
     id:'parachute',name:'PARACHUTE',code:'PR-21',vb:[648,423],
     blurb:'Men drop from the helicopter down three lanes. Slide the rescue boat left and right to catch every one; miss and the shark gets him. Three misses and it&rsquo;s over. Game B hangs some men in the palm tree.',
-    mount(){els=build($('lcd'));sim=new Sim('A');gt=0;amb=null;mis=null;bonus=null;over=null;render()},
+    mount(){els=build($('lcd'));sim=new Sim('A');sim.gate=feasible;gt=0;amb=null;mis=null;bonus=null;over=null;render()},
     build,demo,render,start,move,
     score:()=>sim?sim.total:0,
     mode:()=>mode,
@@ -3479,6 +3768,10 @@ const PARACHUTE=(()=>{
    GAME A  Bluto stands on the LEFT ship and swings his hammer at the left position.
    GAME B  Bluto swaps sides: every ~10 s he is either on the left (hammer, hits the LEFT position) or on the right
            ship (fist punch, hits the RIGHT position). Web sources say the same (A: hammer from the left; B: also from the right).
+
+   TUNED FOR FAIRNESS/RAMP (user request, overrides the footage where noted; see work/tune/popeye): slower start (0.80 s step, straight line to
+   0.61 s at 600 pts), fewer throws at the start, no two items land closer than a score-dependent gap (1.4/2.0 s -> 0.75/1.0 s), no item for the
+   hammer/fist lane lands near Bluto's strike (he waits for a safe moment), first strike >= 7 s (A) / 5 s (B) after the start. Spawner/Bluto timing only.
 
    VERIFIED FROM THE FOOTAGE (23 min video: a clock/attract part, a 14 min Game A run to 790+, a 7.5 min Game B run to 351;
    every LCD segment tracked by pixel-time-series grouping; 802 + 356 thrown items analysed):
@@ -3526,9 +3819,16 @@ const POPEYE=(()=>{
   const ALLG=new Set([5,10,9,7,4,67,11,14,8,45,43,48,19,18,16,15,44,13,46,17,25,24,27,22,52,6,51,89,3,53,2]);
   LANES.forEach(l=>l.st.forEach(g=>ALLG.add(g)));
   D.forEach(d=>Object.values(d).forEach(g=>ALLG.add(g)));
-  const stepLen=sc=>.645-.035*Math.max(0,Math.min(1,(sc-350)/400));
-  const rate=sc=>.68+.00082*Math.min(sc,800);
+  // DIFFICULTY (tuned, NOT from the footage; the unit itself starts at 0.645 s/step and ends at 0.61 s/step):
+  // one throw step starts at 0.80 s (slower than the real unit) and falls in a straight line to the unit's fastest 0.61 s at 600 points.
+  const R800=sc=>Math.max(0,Math.min(1,sc/600));
+  const stepLen=sc=>.80-.19*R800(sc);
+  const rate=sc=>.45+.55*R800(sc);                       // wanted throws per second (the fairness rules below may thin it out)
   const END_DWELL=.3,WIND=.6,STRIKE=.25;
+  // FAIRNESS (tuned): two items never land closer together than this many seconds (arrival = first moment of the 0.3 s catch window);
+  // adjacent positions need one press, left<->right needs two. Falls from 1.4/2.0 s at the start to 0.75/1.0 s at 600 points.
+  const gapAdj=sc=>1.4-.65*R800(sc),gapFar=sc=>2.0-1.0*R800(sc);
+  const LEN=LANES.map(l=>l.st.length);
 
   class Sim{
     constructor(m,rand){
@@ -3538,10 +3838,43 @@ const POPEYE=(()=>{
       this.pos=0;this.ret=0;this.hidden=false;
       this.marker=[false,false,false];this.clearT=0;
       this.freeze=null;this.armT=0;this.armG=45;
-      this.side=-1;this.bl='rest';this.blT=0;this.nextStrike=this.gap();this.phaseT=m==='B'?8:1e9;
+      this.side=-1;this.bl='rest';this.blT=0;this.nextStrike=this.gap()+(m==='B'?5:7);this.phaseT=m==='B'?8:1e9;
       this.t=0;
     }
-    gap(){const mean=this.m==='B'?3.3:Math.max(3.2,5.8-.0033*this.score);return Math.max(1.2,mean*(.4+1.2*this.R()))}
+    gap(){const mean=this.m==='B'?Math.max(3.3,5.0-.0028*this.score):Math.max(3.2,5.8-.0033*this.score);return Math.max(1.8,mean*(.55+.9*this.R()))}
+    // seconds until a not-yet-landed item reaches its last stage (its catch window then lasts END_DWELL); <=0 while it is dwelling
+    eta(it){
+      const tk=this.tick();
+      if(it.end)return it.dwell-END_DWELL;
+      const k=(it.lane-(this.tickN%3)+3)%3,n=LEN[it.lane]-1-it.stage;
+      return (tk-this.tAcc)+k*tk+(n-1)*3*tk;
+    }
+    pairGap(a,b){return a===b||Math.abs(a-b)===1?gapAdj(this.score):gapFar(this.score)}
+    // Bluto's strike on lane `pos`: from `w` seconds from now (wind-up start) the player must not need to stand there until e+0.7
+    sideBlocked(lane,a){
+      if(LANES[lane].pos!==this.side)return false;
+      if(this.bl==='wind')return a>-.35-(WIND-this.blT)&&a<this.blT+STRIKE+.7;
+      if(this.bl==='strike')return a<this.blT+.7;
+      if(this.bl==='rest'&&this.nextStrike<=0)return true;      // Bluto is waiting for a safe moment: keep his lane clear
+      return false;
+    }
+    spawnOK(idx){
+      const a=(LEN[idx]-1)*3*this.tick()+.05;
+      if(this.sideBlocked(idx,a))return false;
+      for(const it of this.items){
+        if(it.caught)continue;
+        if(Math.abs(a-this.eta(it))<this.pairGap(idx,it.lane))return false;
+      }
+      return true;
+    }
+    strikeSafe(){      // may Bluto start a wind-up now? not if a side-lane item is landing around the strike
+      for(const it of this.items){
+        if(it.caught||LANES[it.lane].pos!==this.side)continue;
+        const a=this.eta(it);
+        if(a>-.65&&a<WIND+STRIKE+.7)return false;
+      }
+      return true;
+    }
     tick(){return stepLen(this.score)/3}
     move(d){
       if(this.over||this.hidden||this.freeze&&this.freeze.k==='hit')return false;
@@ -3577,22 +3910,24 @@ const POPEYE=(()=>{
       return ev;
     }
     doTick(ev){
+      let tk=false;
       const li=this.tickN%3;this.tickN++;
       const L=LANES.find(l=>l.ph===li),idx=LANES.indexOf(L);
       this.laneStep[idx]++;
       for(const it of this.items){
         if(it.lane!==idx||it.end)continue;
-        it.stage++;
+        tk=true;it.stage++;
         if(it.stage>=L.st.length-1){it.end=true;it.dwell=END_DWELL;this.checkCatch(it,ev)}
       }
       const free=this.laneStep[idx]-this.laneLast[idx]>=2&&!this.items.some(i=>i.lane===idx&&i.stage===0);
-      const q=Math.min(.6,rate(this.score)*this.tick()/.8);
-      if(free&&this.R()<q){
+      const q=Math.min(.9,rate(this.score)*this.tick()/.5);
+      if(free&&this.R()<q&&this.spawnOK(idx)){
         this.items.push({lane:idx,stage:0,end:false,dwell:0,caught:false});
         this.laneLast[idx]=this.laneStep[idx];
         if(L.armT>0){this.armG=L.arm;this.armT=L.armT}else{this.armG=45;this.armT=0}
-        ev.push('spawn');
+        ev.push('spawn');tk=true;
       }
+      if(tk)ev.push('tick');
     }
     checkCatch(it,ev){
       if(it.caught||!it.end)return;
@@ -3619,7 +3954,7 @@ const POPEYE=(()=>{
           }
         }
         this.nextStrike-=dt;
-        if(this.nextStrike<=0){this.bl='wind';this.blT=WIND}
+        if(this.nextStrike<=0&&this.strikeSafe()){this.bl='wind';this.blT=WIND}
       }else if(this.bl==='wind'){
         this.blT-=dt;if(this.blT<=0){this.bl='strike';this.blT=STRIKE;this.strikeChk(ev)}
       }else{
@@ -3690,8 +4025,10 @@ const POPEYE=(()=>{
     for(const e of ev){
       if(e==='catch'){sfx.catch();buzz(10)}
       else if(e==='hit'){sfx.crush();buzz(80)}
-      else if(e==='drop'||e==='miss'){sfx.miss();buzz(40)}
-      else if(e==='spawn')sfx.tock();
+      else if(e==='drop'){if(!ev.includes('miss')){sfx.miss();buzz(40)}}
+      else if(e==='miss'){sfx.miss();buzz(40)}
+      else if(e==='tick')sfx.tock();
+      else if(e==='bonus')sfx.bonus();
     }
     render();
     if(sim.over){
@@ -3802,8 +4139,13 @@ const TURTLE=(()=>{
   [SLOT,FOOT,FLAP,DIVEG,MAN,PKG.slice(1),FALLG,FLOATG,MISSG].forEach(a=>a.forEach(x=>ALLG.add(x)));
   FISHG.forEach(a=>a.forEach(x=>ALLG.add(x)));CELLS.forEach(c=>Object.values(c).forEach(x=>ALLG.add(x)));
   const AIR=.55, DT=.05;
-  const per=(m,sc)=>m==='A'?Math.max(1.6,2.0-.0133*sc):Math.max(1.6,2.05-.0016*sc);
-  const capOf=sc=>sc<10?1:sc<22?2:sc<32?3:sc<75?4:sc<125?5:6;
+  /* TUNED (difficulty brief, overrides the footage fit): start slow and speed up smoothly with score down to the real unit's fastest
+     step (1.6 s): A 2.5 s at 0 -> 1.6 s at 300 points; B 2.45 s -> 1.6 s at 283.  Footage fit was A 2.0 -> 1.6 by 30 pts. */
+  const per=(m,sc)=>m==='A'?Math.max(1.6,2.5-.003*sc):Math.max(1.6,2.45-.003*sc);
+  /* TUNED: fish on screen grow slowly (footage: 1 <10, 2 <22, 3 <32, 4 <75, 5 <125, 6 beyond) */
+  const capOf=sc=>sc<15?1:sc<40?2:sc<80?3:sc<140?4:sc<220?5:6;
+  /* TUNED: required gap (s) between the dive windows of two ADJACENT turtles (see Sim.diveOK) */
+  const MARGIN=sc=>Math.max(.6,1.2-.002*sc);
   const coldH=n=>[.9,.5,.4,.4,.2,.07][n]||0;
   const chainP=n=>n<=2?.35:n===3?.5:n===4?.48:n===5?.32:n===6?.12:0;
   const bonusOf=r=>r<6.6?12:r<9?10:r<12.2?8:r<16?6:r<20.5?4:2;
@@ -3824,6 +4166,23 @@ const TURTLE=(()=>{
     n(){let k=0;for(const f of this.fish)k+=f.length;return k}
     P(){return per(this.m,this.score)}
     addTicks(k,gap,start){for(let i=0;i<k;i++)this.ticks.push({at:this.t+start+i*gap})}
+    // TUNED fairness rule: the dive windows [start,start+P] of two adjacent turtles never overlap and never come closer than MARGIN.
+    // Otherwise the man could stand on a turtle that is about to go with both neighbours under water (unwinnable, found with a bot).
+    diveStarts(c){
+      const P=this.P(),w=[];
+      if(this.down[c]>0)w.push(this.down[c]-P);
+      for(const x of this.fish[c])w.push(this.ct[c]+(4-x)*P);
+      return w;
+    }
+    diveOK(c,isNew){
+      const P=this.P(),m=MARGIN(this.score);
+      const s0=this.fish[c].length?this.ct[c]+4*P:5*P;
+      for(const o of [c-1,c+1]){
+        if(o<0||o>4)continue;
+        for(const s1 of this.diveStarts(o))if(Math.abs(s0-s1)<P+m)return false;
+      }
+      return true;
+    }
     spawn(c){this.fish[c].push(0);if(this.fish[c].length===1)this.ct[c]=this.P();this.ev.push('fish')}
     free(){return this.air===0&&this.lock===0&&this.count===0&&!this.fall&&!this.over}
     move(d){
@@ -3909,18 +4268,18 @@ const TURTLE=(()=>{
       else if(this.pause<=0){
         const n=this.n(),cap=capOf(this.score);
         if(n<cap&&rr()<coldH(n)*dt){
-          const e=this.lanes.filter(c=>!this.fish[c].length);
+          const e=this.lanes.filter(c=>!this.fish[c].length&&this.diveOK(c));
           if(e.length)this.spawn(e[Math.floor(rr()*e.length)]);
         }
       }
       // Game A centre turtle: camping on it long enough drops a fish into the otherwise unused centre lane (guess)
       if(this.m==='A'){
-        if(this.s===6&&this.air===0){this.camp+=dt;if(this.camp>=10&&!this.fish[2].length&&this.down[2]<=0){this.camp=0;this.spawn(2)}}
+        if(this.s===6&&this.air===0){this.camp+=dt;if(this.camp>=10&&!this.fish[2].length&&this.down[2]<=0&&this.diveOK(2)){this.camp=0;this.spawn(2)}}
         else this.camp=0;
       }
     }
     stepLane(c){
-      const P=this.P(),ntot=this.n();
+      const P=this.P(),ntot=this.n();this.ev.push('fish');
       let nf=this.fish[c].map(x=>x+1);
       const dive=nf.some(x=>x>4);
       nf=nf.filter(x=>x<=4);this.fish[c]=nf;
@@ -3928,7 +4287,7 @@ const TURTLE=(()=>{
         this.down[c]=P;this.ev.push('dive');
         if(this.s===2*c+2&&this.air===0&&!this.fall)this.startFall(c);        // standing on it when it goes (guess)
       }
-      if(this.pause<=0&&this.n()<capOf(this.score)&&nf.every(x=>x>=3)&&rr()<chainP(ntot))this.fish[c].push(0);
+      if(this.pause<=0&&this.n()<capOf(this.score)&&nf.every(x=>x>=3)&&rr()<chainP(ntot)&&this.diveOK(c))this.fish[c].push(0);
       this.ct[c]=this.fish[c].length?P:0;
     }
     update(secs){this.ev=[];this.acc+=secs;while(this.acc>=DT&&!this.over){this.acc-=DT;this.step()}}
@@ -3981,13 +4340,12 @@ const TURTLE=(()=>{
   function sound(ev){
     for(const x of ev){
       if(x==='jump'){sfx.move();buzz(6)}
-      else if(x==='land')sfx.step();
+      else if(x==='fish')sfx.signal();
       else if(x==='tick')sfx.tock();
       else if(x==='deliver'){sfx.catch();buzz(20)}
-      else if(x==='dive')beep(240,.09,'triangle',.03);
-      else if(x==='fall'){sfx.crush();buzz(60)}
+      else if(x==='fall'){(sim.miss>=2?sfx.step:sfx.crush)();buzz(60)}
       else if(x==='miss')sfx.miss();
-      else if(x==='clear')sfx.catch();
+      else if(x==='clear')sfx.bonus();
     }
   }
   function loop(){
